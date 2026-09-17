@@ -1,13 +1,13 @@
 ﻿// Booking application composition: HTTP forms call domain services; the oracle reads saved records.
-import { defineBenchmark, initialScreen, screenOnly } from '../../test/benchmarks/contracts.js'
-import type { Scenario, Screen } from '../../test/benchmarks/contracts.js'
-import { formButtons, formTransition, withFormValues } from '../../test/benchmarks/forms.js'
+import { defineBenchmark, initialScreen, screenOnly } from '../../../test/benchmarks/contracts.js'
+import type { Scenario, Screen } from '../../../test/benchmarks/contracts.js'
+import { formButtons, formTransition, withFormValues } from '../../../test/benchmarks/forms.js'
 import { reservationCases } from './cases.js'
 import { reservationOracle } from './oracle.js'
-import { parseReservationCommand } from './domain.js'
-import type { ReservationData, ReservationPolicy, ReservationFault } from './domain.js'
-import { executeReservation } from './service.js'
-import { reservationFields, renderReservations } from './view.js'
+import { parseReservationCommand } from '../src/domain.js'
+import type { ReservationData, ReservationPolicy, ReservationFault } from '../src/domain.js'
+import { executeReservation } from '../src/service.js'
+import { reservationFields, renderReservations } from '../src/view.js'
 export interface ReservationState extends Screen, ReservationData {}
 const menu = [
   { id: 'open-reserve', label: 'Book a room' },

@@ -61,12 +61,12 @@ function subset(cases: Scenario[]): Scenario[] {
 async function digest(benchmark: Benchmark) {
   const hash = createHash('sha256')
   for (const file of [
-    `examples/${benchmark.slug}/app.ts`,
-    `examples/${benchmark.slug}/cases.ts`,
-    `examples/${benchmark.slug}/oracle.ts`,
-    `examples/${benchmark.slug}/domain.ts`,
-    `examples/${benchmark.slug}/service.ts`,
-    `examples/${benchmark.slug}/view.ts`,
+    `examples/${benchmark.slug}/jevtest/config.ts`,
+    `examples/${benchmark.slug}/jevtest/cases.ts`,
+    `examples/${benchmark.slug}/jevtest/oracle.ts`,
+    `examples/${benchmark.slug}/src/domain.ts`,
+    `examples/${benchmark.slug}/src/service.ts`,
+    `examples/${benchmark.slug}/src/view.ts`,
     'test/benchmarks/contracts.ts',
     'test/benchmarks/adapter.ts',
     'test/benchmarks/host.ts',

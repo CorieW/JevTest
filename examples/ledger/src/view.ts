@@ -1,6 +1,6 @@
 // Wallet screens expose accounts, payment status, card controls, and the persisted journal.
-import type { Field, Inputs, View } from '../../test/benchmarks/contracts.js'
-import { controls, stats, table } from '../../test/benchmarks/ui.js'
+import type { Field, Inputs, View } from '../../../test/benchmarks/contracts.js'
+import { controls, stats, table } from '../../../test/benchmarks/ui.js'
 import type { LedgerData, LedgerPolicy } from './domain.js'
 export function ledgerFields(operation: string, input: Inputs): Field[] {
   if (operation === 'refund')

@@ -69,7 +69,7 @@ docs/            Architecture, integration constraints, validation, licensing in
 .github/         CI, dependency updates, issue and PR templates
 ```
 
-The project uses one root TypeScript package. Shared example hosting and evaluation code lives in `test/benchmarks/`.
+The project uses one root TypeScript package. Shared example hosting and evaluation code lives in `test/benchmarks/`. Each example keeps application code in `src/` and JevTest configuration in `jevtest/`.
 
 ## Examples and validation
 

@@ -1,12 +1,12 @@
 // Compare measured outcomes with planted faults and replay every run without extra API calls.
 import { writeFile, mkdir } from 'node:fs/promises'
 import { resolve } from 'node:path'
-import { startShop } from './server.js'
+import { startShop } from '../src/server.js'
 import { cases, shopProject } from './project.js'
-import { JevPolicy, TokenBudget, TraversalPolicy } from '../../src/jev.js'
-import { runSuite } from '../../src/runner.js'
-import { replay } from '../../src/replay.js'
-import { writeReport } from '../../src/report.js'
+import { JevPolicy, TokenBudget, TraversalPolicy } from '../../../src/jev.js'
+import { runSuite } from '../../../src/runner.js'
+import { replay } from '../../../src/replay.js'
+import { writeReport } from '../../../src/report.js'
 
 const live = process.argv.includes('--live')
 const output = resolve(

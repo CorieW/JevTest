@@ -1,7 +1,7 @@
 // Independent requirements: this oracle has no access to the planted-fault label.
-import type { Inputs } from '../../test/benchmarks/contracts.js'
-import type { Check } from '../../src/types.js'
-import type { ReservationState } from './app.js'
+import type { Inputs } from '../../../test/benchmarks/contracts.js'
+import type { Check } from '../../../src/types.js'
+import type { ReservationState } from './config.js'
 
 export function reservationOracle(state: ReservationState, input: Inputs): Check {
   const workflow = String(input.workflow)

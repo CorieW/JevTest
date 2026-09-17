@@ -1,11 +1,11 @@
 // Domain services are tested independently of the browser, fault selector, and evaluation oracle.
 import { expect, it } from 'vitest'
-import { executeLedger } from '../examples/ledger/service.js'
-import type { LedgerData, LedgerPolicy } from '../examples/ledger/domain.js'
-import { executeReservation } from '../examples/reservations/service.js'
-import type { ReservationData, ReservationPolicy } from '../examples/reservations/domain.js'
-import { executeBoard } from '../examples/taskboard/service.js'
-import type { BoardData, BoardPolicy } from '../examples/taskboard/domain.js'
+import { executeLedger } from '../examples/ledger/src/service.js'
+import type { LedgerData, LedgerPolicy } from '../examples/ledger/src/domain.js'
+import { executeReservation } from '../examples/reservations/src/service.js'
+import type { ReservationData, ReservationPolicy } from '../examples/reservations/src/domain.js'
+import { executeBoard } from '../examples/taskboard/src/service.js'
+import type { BoardData, BoardPolicy } from '../examples/taskboard/src/domain.js'
 const wallet: LedgerData = {
   primary: 100,
   recipient: 20,

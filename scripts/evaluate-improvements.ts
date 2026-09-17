@@ -109,9 +109,14 @@ try {
   const sourceFiles = [
     ...['jev', 'evidence', 'runner', 'types', 'replay', 'browser'].map((name) => `src/${name}.ts`),
     ...chosen.flatMap((app) =>
-      ['app', 'cases', 'oracle', 'domain', 'service', 'view'].map(
-        (name) => `examples/${app.slug}/${name}.ts`,
-      ),
+      [
+        'jevtest/config',
+        'jevtest/cases',
+        'jevtest/oracle',
+        'src/domain',
+        'src/service',
+        'src/view',
+      ].map((name) => `examples/${app.slug}/${name}.ts`),
     ),
     'test/benchmarks/adapter.ts',
     'test/benchmarks/score.ts',

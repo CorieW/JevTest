@@ -38,10 +38,12 @@ This known-route run validates the application, fault reachability, independent 
 
 ## Code layout
 
-- [domain.ts](domain.ts): typed records and command validation.
-- [service.ts](service.ts): business operations and deliberate fault profiles.
-- [view.ts](view.ts): forms and application-specific record tables.
-- [app.ts](app.ts): composition and benchmark integration.
-- [cases.ts](cases.ts) and [oracle.ts](oracle.ts): paired fixtures and independent checks.
+Application code lives in `src/`; JevTest configuration, fixtures, and correctness checks live separately in `jevtest/`.
+
+- [src/domain.ts](src/domain.ts): typed records and command validation.
+- [src/service.ts](src/service.ts): business operations and deliberate fault profiles.
+- [src/view.ts](src/view.ts): forms and application-specific record tables.
+- [jevtest/config.ts](jevtest/config.ts): JevTest benchmark configuration, seeded state, and application wiring.
+- [jevtest/cases.ts](jevtest/cases.ts) and [jevtest/oracle.ts](jevtest/oracle.ts): paired fixtures and independent checks.
 
 See [application architecture](../../docs/example-architecture.md) for persistence, request handling, and evaluation details.

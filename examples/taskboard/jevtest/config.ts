@@ -1,14 +1,14 @@
 ﻿// Task workspace composition with a server-seeded principal and reusable domain services.
-import { defineBenchmark, initialScreen, screenOnly } from '../../test/benchmarks/contracts.js'
-import type { Screen, Scenario } from '../../test/benchmarks/contracts.js'
-import { formButtons, formTransition, withFormValues } from '../../test/benchmarks/forms.js'
+import { defineBenchmark, initialScreen, screenOnly } from '../../../test/benchmarks/contracts.js'
+import type { Screen, Scenario } from '../../../test/benchmarks/contracts.js'
+import { formButtons, formTransition, withFormValues } from '../../../test/benchmarks/forms.js'
 import { taskboardCases } from './cases.js'
 import { taskboardOracle } from './oracle.js'
-import { parseBoardCommand } from './domain.js'
-import type { BoardData, BoardPolicy, BoardFault } from './domain.js'
-import { executeBoard } from './service.js'
-import { taskboardFields, renderTaskboard } from './view.js'
-export type { Task } from './domain.js'
+import { parseBoardCommand } from '../src/domain.js'
+import type { BoardData, BoardPolicy, BoardFault } from '../src/domain.js'
+import { executeBoard } from '../src/service.js'
+import { taskboardFields, renderTaskboard } from '../src/view.js'
+export type { Task } from '../src/domain.js'
 export interface BoardState extends Screen, BoardData {}
 const menu = [
   { id: 'open-assign', label: 'Assign a task' },

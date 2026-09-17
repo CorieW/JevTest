@@ -1,7 +1,7 @@
 // Task requirements examine persisted records, independent of response messages and fault flags.
-import type { Inputs } from '../../test/benchmarks/contracts.js'
-import type { Check } from '../../src/types.js'
-import type { BoardState } from './app.js'
+import type { Inputs } from '../../../test/benchmarks/contracts.js'
+import type { Check } from '../../../src/types.js'
+import type { BoardState } from './config.js'
 export function taskboardOracle(state: BoardState, input: Inputs): Check {
   const workflow = String(input.workflow)
   const task = state.tasks.find((t) => t.id === input.taskId)

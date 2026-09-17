@@ -1,13 +1,13 @@
 ﻿// Composition boundary: seeded identity, form workflow, domain service, and independent evaluation.
-import { defineBenchmark, initialScreen, screenOnly } from '../../test/benchmarks/contracts.js'
-import type { Screen, Scenario } from '../../test/benchmarks/contracts.js'
-import { formButtons, formTransition, withFormValues } from '../../test/benchmarks/forms.js'
+import { defineBenchmark, initialScreen, screenOnly } from '../../../test/benchmarks/contracts.js'
+import type { Screen, Scenario } from '../../../test/benchmarks/contracts.js'
+import { formButtons, formTransition, withFormValues } from '../../../test/benchmarks/forms.js'
 import { ledgerCases } from './cases.js'
 import { ledgerOracle } from './oracle.js'
-import { parseLedgerCommand } from './domain.js'
-import type { LedgerData, LedgerFault, LedgerPolicy } from './domain.js'
-import { executeLedger } from './service.js'
-import { ledgerFields, renderLedger } from './view.js'
+import { parseLedgerCommand } from '../src/domain.js'
+import type { LedgerData, LedgerFault, LedgerPolicy } from '../src/domain.js'
+import { executeLedger } from '../src/service.js'
+import { ledgerFields, renderLedger } from '../src/view.js'
 export interface LedgerState extends Screen, LedgerData {}
 const menu = [
   { id: 'open-transfer', label: 'Send a transfer' },

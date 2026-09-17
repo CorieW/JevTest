@@ -1,6 +1,6 @@
 // Booking desk with a room catalogue, editable booking forms, reservations, and payment totals.
-import type { Field, Inputs, View } from '../../test/benchmarks/contracts.js'
-import { controls, stats, table } from '../../test/benchmarks/ui.js'
+import type { Field, Inputs, View } from '../../../test/benchmarks/contracts.js'
+import { controls, stats, table } from '../../../test/benchmarks/ui.js'
 import type { ReservationData, ReservationPolicy } from './domain.js'
 export function reservationFields(operation: string, input: Inputs): Field[] {
   const time: Field = {

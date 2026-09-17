@@ -29,8 +29,8 @@
   "scripts": {
     "build": "tsc -p config/tsconfig.build.json",
     "dev": "tsx src/cli.ts",
-    "demo": "tsx examples/shop/run.ts",
-    "demo:live": "tsx --env-file=.env.local examples/shop/run.ts --live",
+    "demo": "tsx examples/shop/jevtest/run.ts",
+    "demo:live": "tsx --env-file=.env.local examples/shop/jevtest/run.ts --live",
     "benchmark": "tsx test/benchmarks/evaluate.ts",
     "benchmark:serve": "tsx test/benchmarks/serve.ts",
     "browser:install": "playwright install chromium",

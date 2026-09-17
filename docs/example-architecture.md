@@ -8,15 +8,19 @@ The three larger examples are small, runnable web applications. Each has typed d
 
 Each of `examples/reservations`, `examples/ledger`, and `examples/taskboard` has:
 
-| File         | Responsibility                                                    |
-| ------------ | ----------------------------------------------------------------- |
-| `domain.ts`  | Domain records, typed commands, and input schemas                 |
-| `service.ts` | Business operations independent of the browser and evaluator      |
-| `view.ts`    | Application-specific tables, forms, summaries, and receipts       |
-| `app.ts`     | Application composition, seeded policy, and benchmark integration |
-| `cases.ts`   | 240 paired user flows and their public input fixtures             |
-| `oracle.ts`  | Independent exact checks against observed saved records           |
-| `results/`   | Sanitized evaluations, with historical revisions identified       |
+| File                | Responsibility                                               |
+| ------------------- | ------------------------------------------------------------ |
+| `src/domain.ts`     | Domain records, typed commands, and input schemas            |
+| `src/service.ts`    | Business operations independent of the browser and evaluator |
+| `src/view.ts`       | Application-specific tables, forms, summaries, and receipts  |
+| `jevtest/config.ts` | JevTest configuration, seeded policy, and application wiring |
+| `jevtest/cases.ts`  | 240 paired user flows and their public input fixtures        |
+| `jevtest/oracle.ts` | Independent exact checks against observed saved records      |
+| `results/`          | Sanitized evaluations, with historical revisions identified  |
+
+Application code lives in `src/`. JevTest configuration, paired fixtures, and independent assertions live in `jevtest/` within the same example directory. Application source does not import these evaluation modules. The shared benchmark catalog loads each `jevtest/config.ts`; these definitions are used by `pnpm benchmark` and `pnpm benchmark:serve`.
+
+The shop uses the same separation: `src/server.ts` and `src/serve.ts` implement and serve the application, while `jevtest/config.ts`, `jevtest/project.ts`, and `jevtest/run.ts` configure and evaluate its twelve flows. Its CLI config is passed with `--config examples/shop/jevtest/config.ts`.
 
 Services validate commands and return new state without modifying their input. Optional fault profiles deliberately introduce the benchmark defects. Fault selection and reference routes stay outside the model-visible flow and application responses. The browser presents records and form controls; it no longer prints a JSON dump or offers opaque numbered request choices.
 

@@ -1,6 +1,6 @@
 // Twelve labeled flows exercise exact order counts, totals, quantities, controls, and network failures.
-import { createBrowserAdapter } from '../../src/browser.js'
-import type { Flow, Json, Project } from '../../src/types.js'
+import { createBrowserAdapter } from '../../../src/browser.js'
+import type { Flow, Json, Project } from '../../../src/types.js'
 import type { Page } from 'playwright'
 
 interface ShopState {

@@ -1,6 +1,6 @@
 // Project workspace separates active work, retained archive records, and the activity feed.
-import type { Field, Inputs, View } from '../../test/benchmarks/contracts.js'
-import { controls, escape, stats, table } from '../../test/benchmarks/ui.js'
+import type { Field, Inputs, View } from '../../../test/benchmarks/contracts.js'
+import { controls, escape, stats, table } from '../../../test/benchmarks/ui.js'
 import type { BoardData, BoardPolicy, Task } from './domain.js'
 export function taskboardFields(operation: string, input: Inputs): Field[] {
   const fields: Field[] = [

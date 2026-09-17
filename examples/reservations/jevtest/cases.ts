@@ -1,7 +1,7 @@
 // Four reservation workflows × thirty fixture combinations × matched control/fault versions.
-import { pairCases } from '../../test/benchmarks/contracts.js'
-import { formCases } from '../../test/benchmarks/forms.js'
-import { reservationFields } from './view.js'
+import { pairCases } from '../../../test/benchmarks/contracts.js'
+import { formCases } from '../../../test/benchmarks/forms.js'
+import { reservationFields } from '../src/view.js'
 const cases = ['reserve', 'cancel', 'reschedule', 'capacity'].flatMap((workflow) =>
   Array.from({ length: 30 }, (_, variant) => {
     const guests = (variant % 5) + 1

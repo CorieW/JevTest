@@ -1,7 +1,7 @@
 // A fault label alone must never turn a premature warning or an aborted test into a true positive.
 import { expect, it } from 'vitest'
 import { scoreCase, summarize } from './benchmarks/score.js'
-import { reservations } from '../examples/reservations/app.js'
+import { reservations } from '../examples/reservations/jevtest/config.js'
 import type { RunResult } from '../src/types.js'
 
 const base: RunResult = {
