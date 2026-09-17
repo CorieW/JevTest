@@ -14,6 +14,41 @@ export function validateProject(value: unknown): asserts value is Project {
   if (typeof project.adapter?.open !== 'function') fail('adapter.open', 'expected a function')
   if (project.dispose !== undefined && typeof project.dispose !== 'function')
     fail('dispose', 'expected an async cleanup function')
+  if (
+    project.setupIssues !== undefined &&
+    (!Array.isArray(project.setupIssues) ||
+      project.setupIssues.some((issue) => typeof issue !== 'string'))
+  )
+    fail('setupIssues', 'expected a list of setup issues')
+  if (
+    project.limits !== undefined &&
+    (!project.limits || typeof project.limits !== 'object' || Array.isArray(project.limits))
+  )
+    fail('limits', 'expected an object')
+  if (project.webServer !== undefined) {
+    const server = project.webServer
+    if (
+      !server ||
+      typeof server !== 'object' ||
+      typeof server.command !== 'string' ||
+      !server.command.trim()
+    )
+      fail('webServer.command', 'expected a start command')
+    try {
+      if (!['http:', 'https:'].includes(new URL(server.url).protocol)) throw new Error()
+    } catch {
+      fail('webServer.url', 'expected an absolute HTTP(S) readiness URL')
+    }
+    if (
+      server.timeoutMs !== undefined &&
+      (!Number.isSafeInteger(server.timeoutMs) || server.timeoutMs < 1)
+    )
+      fail('webServer.timeoutMs', 'expected a positive integer')
+    if (server.cwd !== undefined && typeof server.cwd !== 'string')
+      fail('webServer.cwd', 'expected a directory path')
+    if (server.reuseExistingServer !== undefined && typeof server.reuseExistingServer !== 'boolean')
+      fail('webServer.reuseExistingServer', 'expected a boolean')
+  }
   if (!Array.isArray(project.flows) || !project.flows.length)
     fail('flows', 'expected at least one flow')
   const ids = new Set<string>()

@@ -64,6 +64,7 @@ it('never treats unfinished checks or missing exact checks as a pass', async () 
       { id: 'pending', goal: 'Unfinished', completeWhen: 'body', checks: [checks.pending()] },
     ],
   })
+  expect(project.setupIssues).toEqual(['Flow pending: TODO: define an exact success check'])
   const session = await project.adapter.open(project.flows[0]!, 'pending')
   try {
     expect((await session.check()).assertions[0]?.passed).toBe(false)

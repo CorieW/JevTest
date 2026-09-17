@@ -140,6 +140,7 @@ export interface Project {
   outputDir?: string
   webServer?: WebServer
   dispose?: () => Promise<void>
+  setupIssues?: string[]
 }
 export type ProjectConfig = Project | (() => Project | Promise<Project>)
 export interface WebServer {

@@ -13,6 +13,7 @@ import { errorMessage, positiveInteger } from './util.js'
 import { findConfig, loadProject } from './config.js'
 import { initialize } from './init.js'
 import { startWebServer } from './server.js'
+import { diagnose } from './doctor.js'
 import { loadEnvironment } from './environment.js'
 
 async function main() {
@@ -33,7 +34,7 @@ async function main() {
   const command = positionals[0] ?? 'help'
   if (values.help || command === 'help') {
     console.log(
-      `JevTest — bounded exploratory testing\n\n  jevtest init\n  jevtest run --config project.config.ts [--policy jev|baseline] [--flow id]\n  jevtest discover --config project.config.ts --flow id\n  jevtest replay --config project.config.ts --trace path/to/trace.json\n\nOptions: --env-file .env.local --output directory --max-tokens 250000 --max-requests 100\nNode 24 loads erasable TypeScript configs. Config files are trusted executable code.\nSet TYPESAFE_API_KEY for Jev. Replay, discovery and baseline do not use the API.`,
+      `JevTest — bounded exploratory testing\n\n  jevtest init\n  jevtest doctor [--policy baseline] [--config path]\n  jevtest run --config project.config.ts [--policy jev|baseline] [--flow id]\n  jevtest discover --config project.config.ts --flow id\n  jevtest replay --config project.config.ts --trace path/to/trace.json\n\nOptions: --env-file .env.local --output directory --max-tokens 250000 --max-requests 100\nNode 24 loads erasable TypeScript configs. Config files are trusted executable code.\nSet TYPESAFE_API_KEY for Jev. Replay, discovery and baseline do not use the API.`,
     )
     return
   }
@@ -43,9 +44,38 @@ async function main() {
     )
     return
   }
-  if (!['run', 'discover', 'replay'].includes(command))
+  if (!['run', 'discover', 'replay', 'doctor'].includes(command))
     throw new Error(`Unknown command: ${command}`)
   await loadEnvironment(values['env-file'])
+  if (command === 'doctor') {
+    if (!['jev', 'baseline'].includes(values.policy!))
+      throw new Error('Policy must be jev or baseline')
+    const controller = new AbortController()
+    const interrupt = () => controller.abort(new Error('Interrupted by user'))
+    process.once('SIGINT', interrupt)
+    process.once('SIGTERM', interrupt)
+    try {
+      const results = await diagnose({
+        config: values.config,
+        policy: values.policy as 'jev' | 'baseline',
+        signal: controller.signal,
+      })
+      console.log(
+        results
+          .map(
+            (result) =>
+              `${result.ok ? 'OK' : 'FAIL'} ${result.name}: ${errorMessage(result.message)}`,
+          )
+          .join('\n'),
+      )
+      console.log('No model API calls were made. Doctor does not certify application correctness.')
+      process.exitCode = results.every((result) => result.ok) ? 0 : 1
+    } finally {
+      process.removeListener('SIGINT', interrupt)
+      process.removeListener('SIGTERM', interrupt)
+    }
+    return
+  }
   const project = await loadProject(await findConfig(values.config))
   const controller = new AbortController()
   const interrupt = () => controller.abort(new Error('Interrupted by user'))
@@ -53,6 +83,8 @@ async function main() {
   process.once('SIGTERM', interrupt)
   let stop: (() => Promise<void>) | undefined
   try {
+    if (command === 'run' && values.policy === 'jev' && project.setupIssues?.length)
+      throw new Error(`Finish configuration before a live run: ${project.setupIssues.join('; ')}`)
     stop = await startWebServer(project.webServer, controller.signal)
     const output = resolve(values.output ?? project.outputDir ?? 'artifacts/run')
     if (command === 'replay') {

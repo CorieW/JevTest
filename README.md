@@ -43,6 +43,8 @@ node dist/cli.js replay  --trace artifacts/run/RUN_ID/trace.json
 
 Use `--env-file` consistently with CLI commands, `pnpm benchmark`, and evaluation scripts. Existing process variables take precedence; environment files are never loaded implicitly.
 
+Run `pnpm dev doctor --policy baseline` to check Node, Chromium, configuration, and target availability without credentials or model calls. For live readiness, use `pnpm dev doctor --env-file .env.local`; this checks credential presence, not authentication. Doctor temporarily starts configured local servers and cleans them up afterward.
+
 The CLI discovers `jevtest/config.ts` or `jevtest.config.ts`. If both exist, select one with `--config`. Initialization preserves existing files and scripts; the generated check cannot pass until you implement it. Run `pnpm jevtest:typecheck` to check the generated configuration.
 
 Node 24 can load the example's erasable TypeScript directly. During development, `pnpm dev` runs the CLI through `tsx`. Config files are trusted executable code.

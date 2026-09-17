@@ -7,6 +7,7 @@ import { validateProject } from './config.js'
 
 export interface BrowserCheck {
   name: string
+  configured?: boolean
   evaluate: (page: Page, flow: Flow) => Promise<Omit<Assertion, 'name'>>
 }
 export interface BrowserFlow {
@@ -65,6 +66,7 @@ export const checks = {
   }),
   pending: (name = 'TODO: define an exact success check'): BrowserCheck => ({
     name,
+    configured: false,
     evaluate: async () => ({ passed: false, actual: 'Check not implemented' }),
   }),
 }
@@ -117,6 +119,11 @@ export function defineProject(options: BrowserProject): Project {
     limits: options.limits,
     outputDir: options.outputDir,
     webServer: options.webServer,
+    setupIssues: options.flows.flatMap((flow) =>
+      [...flow.checks, ...(flow.invariants ?? [])]
+        .filter((check) => check.configured === false)
+        .map((check) => `Flow ${flow.id}: ${check.name}`),
+    ),
     adapter: createBrowserAdapter({
       ...options.browser,
       ready:
