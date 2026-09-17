@@ -30,16 +30,18 @@ The live demo uses one shared 250,000-token admission budget and at most 80 requ
 ## Test your application
 
 1. Build with `pnpm build`.
-2. Copy `jevtest.config.example.ts` to `jevtest.config.ts`.
-3. Set your start URL, fixtures, deterministic checks, and readiness condition.
+2. Run `pnpm dev init` to generate `jevtest/config.ts` and one unfinished flow.
+3. Edit `jevtest/flows.ts` and `jevtest/config.ts` with your URL, inputs, exact checks, and readiness condition.
 4. Set `TYPESAFE_API_KEY` in the process environment.
 
 ```sh
-node dist/cli.js run --config jevtest.config.ts --max-tokens 250000
-node dist/cli.js run --config jevtest.config.ts --policy baseline
-node dist/cli.js discover --config jevtest.config.ts --flow checkout
-node dist/cli.js replay --config jevtest.config.ts --trace artifacts/run/RUN_ID/trace.json
+node dist/cli.js run  --max-tokens 250000
+node dist/cli.js run  --policy baseline
+node dist/cli.js discover  --flow checkout
+node dist/cli.js replay  --trace artifacts/run/RUN_ID/trace.json
 ```
+
+The CLI discovers `jevtest/config.ts` or `jevtest.config.ts`. If both exist, select one with `--config`. Initialization preserves existing files and scripts; the generated check cannot pass until you implement it.
 
 Node 24 can load the example's erasable TypeScript directly. During development, `pnpm dev` runs the CLI through `tsx`. Config files are trusted executable code.
 
