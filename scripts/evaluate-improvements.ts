@@ -15,10 +15,12 @@ import { benchmarkProject, ReferencePolicy } from '../test/benchmarks/adapter.js
 import { asFlow } from '../test/benchmarks/contracts.js'
 import { scoreCase, summarize } from '../test/benchmarks/score.js'
 import { positiveInteger } from '../src/util.js'
+import { loadEnvironment } from '../src/environment.js'
 
 const { values } = parseArgs({
   options: {
     mode: { type: 'string', default: 'assess' },
+    'env-file': { type: 'string' },
     variants: { type: 'string', default: '0,1' },
     app: { type: 'string', default: 'all' },
     case: { type: 'string' },
@@ -31,6 +33,7 @@ const { values } = parseArgs({
     'trace-root': { type: 'string' },
   },
 })
+await loadEnvironment(values['env-file'])
 if (!['assess', 'flows', 'cached', 'reference'].includes(values.mode!))
   throw new Error('Mode must be assess, flows, cached, or reference')
 const variants = values.variants!.split(',').map(Number)

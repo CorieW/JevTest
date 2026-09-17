@@ -17,10 +17,12 @@ import { JevPolicy, TokenBudget } from '../../src/jev.js'
 import { writeReport } from '../../src/report.js'
 import type { RunResult, Usage } from '../../src/types.js'
 import { positiveInteger } from '../../src/util.js'
+import { loadEnvironment } from '../../src/environment.js'
 
 const { values } = parseArgs({
   options: {
     app: { type: 'string', default: 'all' },
+    'env-file': { type: 'string' },
     mode: { type: 'string', default: 'reference' },
     limit: { type: 'string' },
     concurrency: { type: 'string', default: '3' },
@@ -30,6 +32,7 @@ const { values } = parseArgs({
     'render-only': { type: 'boolean', default: false },
   },
 })
+await loadEnvironment(values['env-file'])
 if (!['reference', 'jev', 'both'].includes(values.mode!))
   throw new Error('Mode must be reference, jev, or both')
 const chosen = benchmarks.filter((b) => values.app === 'all' || b.slug === values.app)

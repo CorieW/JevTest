@@ -72,5 +72,21 @@ export const flows: BrowserFlow[] = [{
     ...pkg.scripts,
   }
   await writeFile(packageFile, JSON.stringify(pkg, null, 2) + '\n')
+  const ignoreFile = resolve(cwd, '.gitignore')
+  const ignore = (await exists(ignoreFile)) ? await readFile(ignoreFile, 'utf8') : ''
+  const missing = ['.env.local', 'artifacts/'].filter(
+    (line) => !ignore.split(/\r?\n/).includes(line),
+  )
+  if (missing.length)
+    await writeFile(
+      ignoreFile,
+      ignore + (ignore && !ignore.endsWith('\n') ? '\n' : '') + missing.join('\n') + '\n',
+    )
+  if (!(await exists(resolve(cwd, '.env.example'))))
+    await writeFile(
+      resolve(cwd, '.env.example'),
+      '# Local credentials; copy to .env.local and never commit values.\nTYPESAFE_API_KEY=\nTYPESAFE_MODEL=jev-latest\n',
+      { flag: 'wx' },
+    )
   return ['jevtest/config.ts', 'jevtest/flows.ts', 'jevtest/tsconfig.json', 'package.json']
 }

@@ -20,7 +20,10 @@ it('creates an isolated integration while preserving existing scripts and packag
     join(cwd, 'package.json'),
     JSON.stringify({ name: 'app', scripts: { 'jevtest:run': 'custom', start: 'serve' } }),
   )
+  await writeFile(join(cwd, '.gitignore'), 'keep/\n')
   await initialize(cwd)
+  expect(await readFile(join(cwd, '.gitignore'), 'utf8')).toBe('keep/\n.env.local\nartifacts/\n')
+  expect(await readFile(join(cwd, '.env.example'), 'utf8')).toContain('TYPESAFE_API_KEY=\n')
   const pkg = JSON.parse(await readFile(join(cwd, 'package.json'), 'utf8'))
   expect(pkg).toMatchObject({ name: 'app', scripts: { 'jevtest:run': 'custom', start: 'serve' } })
   expect(pkg.scripts['jevtest:baseline']).toContain('--policy baseline')

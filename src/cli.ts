@@ -13,12 +13,14 @@ import { writeReport } from './report.js'
 import { errorMessage, positiveInteger } from './util.js'
 import { findConfig, validateProject } from './config.js'
 import { initialize } from './init.js'
+import { loadEnvironment } from './environment.js'
 
 async function main() {
   const { positionals, values } = parseArgs({
     allowPositionals: true,
     options: {
       config: { type: 'string' },
+      'env-file': { type: 'string' },
       output: { type: 'string' },
       policy: { type: 'string', default: 'jev' },
       flow: { type: 'string' },
@@ -31,7 +33,7 @@ async function main() {
   const command = positionals[0] ?? 'help'
   if (values.help || command === 'help') {
     console.log(
-      `JevTest — bounded exploratory testing\n\n  jevtest init\n  jevtest run --config project.config.ts [--policy jev|baseline] [--flow id]\n  jevtest discover --config project.config.ts --flow id\n  jevtest replay --config project.config.ts --trace path/to/trace.json\n\nOptions: --output directory --max-tokens 250000 --max-requests 100\nNode 24 loads erasable TypeScript configs. Config files are trusted executable code.\nSet TYPESAFE_API_KEY for Jev. Replay, discovery and baseline do not use the API.`,
+      `JevTest — bounded exploratory testing\n\n  jevtest init\n  jevtest run --config project.config.ts [--policy jev|baseline] [--flow id]\n  jevtest discover --config project.config.ts --flow id\n  jevtest replay --config project.config.ts --trace path/to/trace.json\n\nOptions: --env-file .env.local --output directory --max-tokens 250000 --max-requests 100\nNode 24 loads erasable TypeScript configs. Config files are trusted executable code.\nSet TYPESAFE_API_KEY for Jev. Replay, discovery and baseline do not use the API.`,
     )
     return
   }
@@ -43,6 +45,7 @@ async function main() {
   }
   if (!['run', 'discover', 'replay'].includes(command))
     throw new Error(`Unknown command: ${command}`)
+  await loadEnvironment(values['env-file'])
   const project = (await import(pathToFileURL(await findConfig(values.config)).href))
     .default as Project
   validateProject(project)

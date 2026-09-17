@@ -45,7 +45,7 @@ pnpm benchmark --app taskboard --mode jev --limit 8 --max-tokens 100000
 pnpm demo
 ```
 
-Live evaluation uses an explicit token budget shared across the command's workers. The command defaults to at most 8,800,000 charged tokens and 6,000 requests; budgets do not carry across separate commands. A budget-limited run remains incomplete. Evaluation reads the process environment and does not load an environment file automatically.
+Live evaluation uses an explicit token budget shared across the command's workers. The command defaults to at most 8,800,000 charged tokens and 6,000 requests; budgets do not carry across separate commands. A budget-limited run remains incomplete. Evaluation reads the process environment. Pass `--env-file .env.local` to load a file explicitly; existing process values take precedence.
 
 ## How scoring works
 

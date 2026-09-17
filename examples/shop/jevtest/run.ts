@@ -7,7 +7,15 @@ import { JevPolicy, TokenBudget, TraversalPolicy } from '../../../src/jev.js'
 import { runSuite } from '../../../src/runner.js'
 import { replay } from '../../../src/replay.js'
 import { writeReport } from '../../../src/report.js'
+import { loadEnvironment } from '../../../src/environment.js'
 
+const envIndex = process.argv.indexOf('--env-file')
+if (
+  envIndex !== -1 &&
+  (!process.argv[envIndex + 1] || process.argv[envIndex + 1]!.startsWith('--'))
+)
+  throw new Error('--env-file requires a path')
+await loadEnvironment(envIndex === -1 ? undefined : process.argv[envIndex + 1])
 const live = process.argv.includes('--live')
 const output = resolve(
   `artifacts/${live ? 'live' : 'baseline'}-${new Date().toISOString().replace(/[:.]/g, '-')}`,

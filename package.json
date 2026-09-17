@@ -30,7 +30,7 @@
     "build": "tsc -p config/tsconfig.build.json",
     "dev": "tsx src/cli.ts",
     "demo": "tsx examples/shop/jevtest/run.ts",
-    "demo:live": "tsx --env-file=.env.local examples/shop/jevtest/run.ts --live",
+    "demo:live": "tsx examples/shop/jevtest/run.ts --live --env-file .env.local",
     "benchmark": "tsx test/benchmarks/evaluate.ts",
     "benchmark:serve": "tsx test/benchmarks/serve.ts",
     "browser:install": "playwright install chromium",
