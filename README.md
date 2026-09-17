@@ -72,3 +72,5 @@ docs/            Architecture, integration constraints, validation, licensing in
 Adapted from the structure of [ultimate-project-template](https://github.com/CorieW/ultimate-project-template). One root package; no `apps/`, `packages/`, Turbo, private registry, or `@coriew/*` dependencies. `pnpm-workspace.yaml` contains only the esbuild install-script permission, not workspace definitions.
 
 See [the project guide](docs/project-guide.md), [shop example](examples/shop/README.md), and [validation results](docs/validation.md).
+
+For larger evaluations, see the [benchmark mini-codebases](examples/README.md): reservations, a synthetic ledger, and a task board, each with 240 labeled flows and measured results in its README. `pnpm benchmark --mode reference` uses no API; `--mode jev` opts into bounded live evaluation.
