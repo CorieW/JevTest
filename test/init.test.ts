@@ -25,9 +25,9 @@ it('creates an isolated integration while preserving existing scripts and packag
   expect(pkg).toMatchObject({ name: 'app', scripts: { 'jevtest:run': 'custom', start: 'serve' } })
   expect(pkg.scripts['jevtest:baseline']).toContain('--policy baseline')
   expect(await findConfig(undefined, cwd)).toBe(join(cwd, 'jevtest', 'config.ts'))
-  const config = await readFile(join(cwd, 'jevtest/config.ts'), 'utf8')
-  expect(config).toContain('complete: false')
-  expect(config).toContain('passed: false')
+  const flows = await readFile(join(cwd, 'jevtest/flows.ts'), 'utf8')
+  expect(flows).toContain('checks.pending()')
+  expect(pkg.scripts['jevtest:typecheck']).toContain('jevtest/tsconfig.json')
   await expect(initialize(cwd)).rejects.toThrow('Refusing to overwrite')
 })
 it('refuses partial or legacy configurations without modifying files', async () => {

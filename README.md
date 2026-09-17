@@ -41,11 +41,33 @@ node dist/cli.js discover  --flow checkout
 node dist/cli.js replay  --trace artifacts/run/RUN_ID/trace.json
 ```
 
-The CLI discovers `jevtest/config.ts` or `jevtest.config.ts`. If both exist, select one with `--config`. Initialization preserves existing files and scripts; the generated check cannot pass until you implement it.
+The CLI discovers `jevtest/config.ts` or `jevtest.config.ts`. If both exist, select one with `--config`. Initialization preserves existing files and scripts; the generated check cannot pass until you implement it. Run `pnpm jevtest:typecheck` to check the generated configuration.
 
 Node 24 can load the example's erasable TypeScript directly. During development, `pnpm dev` runs the CLI through `tsx`. Config files are trusted executable code.
 
 Each flow has a separate browser context. Use `setup`, `cleanup`, and the supplied unique run ID to isolate **backend** data as well. Browser isolation alone does not isolate a shared database.
+
+A flow can use exact browser checks without implementing an adapter:
+
+```ts
+import { defineProject, checks } from '../dist/index.js'
+
+export default defineProject({
+  baseUrl: 'http://127.0.0.1:3000',
+  ready: '[data-testid="app-ready"]',
+  flows: [
+    {
+      id: 'checkout',
+      goal: 'Place exactly one order.',
+      inputs: { '#email': ['customer@example.test'] },
+      completeWhen: '[data-testid="order-confirmation"]',
+      checks: [checks.count('[data-testid="order-row"]', 1)],
+    },
+  ],
+})
+```
+
+Use custom named checks for authoritative API/database assertions, or supply a complete adapter for advanced integrations.
 
 ## Outcomes and evidence
 

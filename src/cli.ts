@@ -11,7 +11,7 @@ import { replay } from './replay.js'
 import { crawl, toDot } from './graph.js'
 import { writeReport } from './report.js'
 import { errorMessage, positiveInteger } from './util.js'
-import { findConfig } from './config.js'
+import { findConfig, validateProject } from './config.js'
 import { initialize } from './init.js'
 
 async function main() {
@@ -45,8 +45,7 @@ async function main() {
     throw new Error(`Unknown command: ${command}`)
   const project = (await import(pathToFileURL(await findConfig(values.config)).href))
     .default as Project
-  if (!project?.adapter || !Array.isArray(project.flows))
-    throw new Error('Config must export default { adapter, flows }')
+  validateProject(project)
   const output = resolve(values.output ?? project.outputDir ?? 'artifacts/run')
   if (command === 'replay') {
     if (!values.trace) throw new Error('Replay requires --trace')

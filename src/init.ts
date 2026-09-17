@@ -11,7 +11,12 @@ const portable = (from: string, to: string) => {
 
 export async function initialize(cwd = process.cwd()): Promise<string[]> {
   const directory = resolve(cwd, 'jevtest')
-  const files = ['jevtest/config.ts', 'jevtest/flows.ts', 'jevtest.config.ts']
+  const files = [
+    'jevtest/config.ts',
+    'jevtest/flows.ts',
+    'jevtest.config.ts',
+    'jevtest/tsconfig.json',
+  ]
   for (const file of files)
     if (await exists(resolve(cwd, file))) throw new Error(`Refusing to overwrite ${file}.`)
   const packageFile = resolve(cwd, 'package.json')
@@ -22,39 +27,50 @@ export async function initialize(cwd = process.cwd()): Promise<string[]> {
     throw new Error('package.json scripts must be an object.')
   const entry = portable(directory, fileURLToPath(new URL('../dist/index.js', import.meta.url)))
   const cli = portable(cwd, fileURLToPath(new URL('../dist/cli.js', import.meta.url)))
-  const config = `// JevTest integration; replace the unfinished check with your application's requirements.
-import { createBrowserAdapter } from ${JSON.stringify(entry)}
-import type { Project } from ${JSON.stringify(entry)}
+  const config = `// JevTest integration; edit the URL, readiness condition, and flow checks.
+import { defineProject } from ${JSON.stringify(entry)}
 import { flows } from './flows.ts'
-
-export default {
-  flows,
-  adapter: createBrowserAdapter({
-    check: async () => ({
-      complete: false,
-      assertions: [{ name: 'TODO: define an exact success check', passed: false }],
-    }),
-  }),
-  limits: { concurrency: 1, maxSteps: 10 },
-} satisfies Project
+export default defineProject({ baseUrl: 'http://127.0.0.1:3000', ready: 'body', flows })
 `
-  const flows = `// Replace this goal and URL with one task in your application.
-import type { Flow } from ${JSON.stringify(entry)}
-export const flows: Flow[] = [{
+  const flows = `// Replace this unfinished task and exact check before running a live evaluation.
+import { checks } from ${JSON.stringify(entry)}
+import type { BrowserFlow } from ${JSON.stringify(entry)}
+export const flows: BrowserFlow[] = [{
   id: 'smoke',
   goal: 'TODO: describe the user task to exercise.',
-  startUrl: 'http://127.0.0.1:3000',
-  successCriteria: ['TODO: describe the exact expected outcome.'],
+  completeWhen: '[data-testid="TODO-confirmation"]',
+  checks: [checks.pending()],
 }]
 `
   await mkdir(directory, { recursive: true })
   await writeFile(resolve(directory, 'config.ts'), config, { flag: 'wx' })
   await writeFile(resolve(directory, 'flows.ts'), flows, { flag: 'wx' })
+  await writeFile(
+    resolve(directory, 'tsconfig.json'),
+    JSON.stringify(
+      {
+        compilerOptions: {
+          target: 'ES2022',
+          module: 'NodeNext',
+          moduleResolution: 'NodeNext',
+          strict: true,
+          noEmit: true,
+          skipLibCheck: true,
+          allowImportingTsExtensions: true,
+        },
+        include: ['./**/*.ts'],
+      },
+      null,
+      2,
+    ) + '\n',
+    { flag: 'wx' },
+  )
   pkg.scripts = {
+    'jevtest:typecheck': 'tsc --noEmit -p jevtest/tsconfig.json',
     'jevtest:run': `node ${JSON.stringify(cli)} run`,
     'jevtest:baseline': `node ${JSON.stringify(cli)} run --policy baseline`,
     ...pkg.scripts,
   }
   await writeFile(packageFile, JSON.stringify(pkg, null, 2) + '\n')
-  return ['jevtest/config.ts', 'jevtest/flows.ts', 'package.json']
+  return ['jevtest/config.ts', 'jevtest/flows.ts', 'jevtest/tsconfig.json', 'package.json']
 }
