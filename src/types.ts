@@ -138,5 +138,13 @@ export interface Project {
   adapter: Adapter
   limits?: Partial<Limits>
   outputDir?: string
+  webServer?: WebServer
+}
+export interface WebServer {
+  command: string
+  url: string
+  cwd?: string
+  timeoutMs?: number
+  reuseExistingServer?: boolean
 }
 export const ABORT = '__abort__'

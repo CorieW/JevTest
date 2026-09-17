@@ -69,6 +69,18 @@ export default defineProject({
 })
 ```
 
+To start your application automatically, add `webServer` to either configuration style:
+
+```ts
+webServer: {
+  command: 'pnpm dev',
+  url: 'http://127.0.0.1:3000/health',
+  timeoutMs: 30000,
+}
+```
+
+Commands run from the invoking directory unless `cwd` is set. JevTest waits for an HTTP 2xx/3xx response and closes its owned process tree after completion, failure, or cancellation. Existing servers require `reuseExistingServer: true` and are never stopped by JevTest. Start commands are trusted shell code.
+
 Use custom named checks for authoritative API/database assertions, or supply a complete adapter for advanced integrations.
 
 ## Outcomes and evidence

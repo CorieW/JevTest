@@ -26,6 +26,7 @@ export interface BrowserProject {
   browser?: Omit<BrowserOptions, 'check' | 'ready'>
   limits?: Project['limits']
   outputDir?: string
+  webServer?: Project['webServer']
 }
 export const checks = {
   visible: (selector: string, name = `Visible: ${selector}`): BrowserCheck => ({
@@ -115,6 +116,7 @@ export function defineProject(options: BrowserProject): Project {
     flows,
     limits: options.limits,
     outputDir: options.outputDir,
+    webServer: options.webServer,
     adapter: createBrowserAdapter({
       ...options.browser,
       ready:

@@ -19,6 +19,7 @@ export async function replay(
   outputDir = 'artifacts',
   timeoutMs = 120_000,
   cleanupTimeoutMs = 15_000,
+  externalSignal?: AbortSignal,
 ): Promise<ReplayResult> {
   positiveInteger(timeoutMs, 'timeoutMs')
   positiveInteger(cleanupTimeoutMs, 'cleanupTimeoutMs')
@@ -32,7 +33,10 @@ export async function replay(
     reason: '',
     directory,
   }
-  const signal = AbortSignal.timeout(timeoutMs)
+  const signal = AbortSignal.any([
+    AbortSignal.timeout(timeoutMs),
+    ...(externalSignal ? [externalSignal] : []),
+  ])
   let session: Session | undefined
   try {
     const opening = adapter.open(trace.flow, id)
