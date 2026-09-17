@@ -123,3 +123,9 @@ The [example applications](examples/README.md) include reservations, a synthetic
 The current reference evaluation passed all 360 healthy cases, detected all 360 planted faults through exact checks, and reproduced all 720 traces without API calls. Live Jev accuracy has not been measured on these application versions. Run `pnpm benchmark --mode reference` to repeat the evaluation.
 
 See the [project guide](docs/project-guide.md) for integration and budgets, and [example architecture](docs/example-architecture.md) for application structure and evaluation details.
+
+## Contributions
+
+Contributions are welcome! Open an [issue](https://github.com/CorieW/JevTest/issues) or submit a pull request against `next`. Follow [AGENTS.md](AGENTS.md), use Conventional Commits, and run `pnpm verify` before submitting.
+
+Report vulnerabilities privately through [SECURITY.md](SECURITY.md).
