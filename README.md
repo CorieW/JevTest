@@ -81,6 +81,8 @@ webServer: {
 
 Commands run from the invoking directory unless `cwd` is set. JevTest waits for an HTTP 2xx/3xx response and closes its owned process tree after completion, failure, or cancellation. Existing servers require `reuseExistingServer: true` and are never stopped by JevTest. Start commands are trusted shell code.
 
+Configs may export a project directly or an async factory returning a project. A factory can return `dispose` to release resources on completion or failure. All example configs work through the normal CLI.
+
 Use custom named checks for authoritative API/database assertions, or supply a complete adapter for advanced integrations.
 
 ## Outcomes and evidence

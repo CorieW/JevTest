@@ -6,13 +6,7 @@ The six healthy flows cover different quantities, prices, and discounts. The six
 
 Metrics distinguish exact assertion failures from model candidates. The demo exits nonzero on missed bugs, healthy-flow false alarms, incomplete healthy flows, infrastructure errors, or replay drift. A planted assertion failure is an expected benchmark outcome.
 
-For CLI/manual exploration, keep the server running in a separate terminal:
-
-```sh
-pnpm exec tsx examples/shop/src/serve.ts
-```
-
-Then run:
+The standard CLI starts and stops the local shop automatically:
 
 ```sh
 pnpm dev run --config examples/shop/jevtest/config.ts --policy baseline
@@ -20,7 +14,7 @@ pnpm dev discover --config examples/shop/jevtest/config.ts --flow single-item
 pnpm dev replay --config examples/shop/jevtest/config.ts --trace artifacts/run/RUN_ID/trace.json
 ```
 
-The fixture server defaults to `http://127.0.0.1:4317`. Set `SHOP_URL` to match a different server. Replay requires the original fixture URL to remain available; ephemeral demo runs perform replay before shutting down.
+The CLI server defaults to `http://127.0.0.1:4317`; set `JEVTEST_PORT` to change it. Set `SHOP_URL` to use an existing server, which JevTest will not stop. For manual inspection, run `pnpm exec tsx examples/shop/src/serve.ts`. Replay requires the same URL and fixtures as the recorded run.
 
 This compact benchmark checks browser execution, assertions, and replay within a constrained checkout flow. Its scores do not estimate performance on arbitrary websites.
 

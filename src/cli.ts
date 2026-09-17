@@ -1,17 +1,16 @@
 #!/usr/bin/env node
 // CLI loads trusted project code and runs, discovers, or replays local test flows.
 import { parseArgs } from 'node:util'
-import { pathToFileURL } from 'node:url'
 import { resolve } from 'node:path'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
-import type { Project, RunResult } from './types.js'
+import type { RunResult } from './types.js'
 import { JevPolicy, TokenBudget, TraversalPolicy } from './jev.js'
 import { runSuite } from './runner.js'
 import { replay } from './replay.js'
 import { crawl, toDot } from './graph.js'
 import { writeReport } from './report.js'
 import { errorMessage, positiveInteger } from './util.js'
-import { findConfig, validateProject } from './config.js'
+import { findConfig, loadProject } from './config.js'
 import { initialize } from './init.js'
 import { startWebServer } from './server.js'
 import { loadEnvironment } from './environment.js'
@@ -47,9 +46,7 @@ async function main() {
   if (!['run', 'discover', 'replay'].includes(command))
     throw new Error(`Unknown command: ${command}`)
   await loadEnvironment(values['env-file'])
-  const project = (await import(pathToFileURL(await findConfig(values.config)).href))
-    .default as Project
-  validateProject(project)
+  const project = await loadProject(await findConfig(values.config))
   const controller = new AbortController()
   const interrupt = () => controller.abort(new Error('Interrupted by user'))
   process.once('SIGINT', interrupt)
@@ -124,8 +121,12 @@ async function main() {
     try {
       await stop?.()
     } finally {
-      process.removeListener('SIGINT', interrupt)
-      process.removeListener('SIGTERM', interrupt)
+      try {
+        await project.dispose?.()
+      } finally {
+        process.removeListener('SIGINT', interrupt)
+        process.removeListener('SIGTERM', interrupt)
+      }
     }
   }
 }

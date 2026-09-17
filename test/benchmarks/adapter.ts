@@ -5,6 +5,21 @@ import { ABORT } from '../../src/types.js'
 import type { Benchmark, View } from './contracts.js'
 import { asFlow } from './contracts.js'
 import type { BenchmarkHost } from './host.js'
+import { startBenchmark } from './host.js'
+import type { Project } from '../../src/types.js'
+export async function exampleProject(benchmark: Benchmark): Promise<Project> {
+  const host = await startBenchmark(benchmark, Number(process.env.JEVTEST_PORT ?? 4320))
+  try {
+    return {
+      ...benchmarkProject(benchmark, host),
+      limits: { maxSteps: 12, concurrency: 2 },
+      dispose: host.close,
+    }
+  } catch (error) {
+    await host.close()
+    throw error
+  }
+}
 export function benchmarkProject(benchmark: Benchmark, host: BenchmarkHost) {
   const scenarios = new Map(benchmark.cases.map((s) => [s.id, s]))
   const browser = createBrowserAdapter({

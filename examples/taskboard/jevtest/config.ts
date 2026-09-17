@@ -1,4 +1,5 @@
 // JevTest wiring: fixtures, action inputs, deliberate fault selection, and independent grading.
+import { exampleProject } from '../../../test/benchmarks/adapter.js'
 import { defineBenchmark } from '../../../test/benchmarks/contracts.js'
 import type { Scenario } from '../../../test/benchmarks/contracts.js'
 import { taskboardApp } from '../src/app.js'
@@ -43,3 +44,5 @@ export const taskboard = defineBenchmark<BoardState>({
   render: taskboardApp.render,
   oracle: taskboardOracle,
 })
+
+export default () => exampleProject(taskboard)

@@ -36,6 +36,14 @@ This known-route run validates the application, fault reachability, independent 
 
 <!-- evaluation:end -->
 
+The same configuration works with the standard CLI, which starts and stops its local server automatically:
+
+```sh
+pnpm dev run --config examples/taskboard/jevtest/config.ts --policy baseline
+```
+
+Use `--flow` to select a case. The normal CLI reports planted faults as failures; `pnpm benchmark` provides aggregate evaluation scoring. The server uses port 4320; set `JEVTEST_PORT` to change it.
+
 ## Code layout
 
 Application code lives in `src/` and has no dependency on JevTest. The `jevtest/` directory imports the application and supplies evaluation configuration, fixtures, and correctness checks.

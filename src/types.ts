@@ -139,7 +139,9 @@ export interface Project {
   limits?: Partial<Limits>
   outputDir?: string
   webServer?: WebServer
+  dispose?: () => Promise<void>
 }
+export type ProjectConfig = Project | (() => Project | Promise<Project>)
 export interface WebServer {
   command: string
   url: string

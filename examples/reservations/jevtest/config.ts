@@ -1,4 +1,5 @@
 // JevTest wiring: fixtures, action inputs, deliberate fault selection, and independent grading.
+import { exampleProject } from '../../../test/benchmarks/adapter.js'
 import { defineBenchmark } from '../../../test/benchmarks/contracts.js'
 import type { Scenario } from '../../../test/benchmarks/contracts.js'
 import { reservationsApp } from '../src/app.js'
@@ -46,3 +47,5 @@ export const reservations = defineBenchmark<ReservationState>({
   render: reservationsApp.render,
   oracle: reservationOracle,
 })
+
+export default () => exampleProject(reservations)

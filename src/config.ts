@@ -1,6 +1,7 @@
 // Locate explicitly selected or conventional project configurations without silently choosing between them.
 import { access } from 'node:fs/promises'
 import { resolve } from 'node:path'
+import { pathToFileURL } from 'node:url'
 import type { Project } from './types.js'
 import { validateLimits } from './runner.js'
 
@@ -11,6 +12,8 @@ export function validateProject(value: unknown): asserts value is Project {
   if (!value || typeof value !== 'object') fail('default export', 'expected a project object')
   const project = value as Project
   if (typeof project.adapter?.open !== 'function') fail('adapter.open', 'expected a function')
+  if (project.dispose !== undefined && typeof project.dispose !== 'function')
+    fail('dispose', 'expected an async cleanup function')
   if (!Array.isArray(project.flows) || !project.flows.length)
     fail('flows', 'expected at least one flow')
   const ids = new Set<string>()
@@ -44,6 +47,18 @@ export function validateProject(value: unknown): asserts value is Project {
   } catch (error) {
     fail('limits', (error as Error).message)
   }
+}
+
+export async function loadProject(file: string): Promise<Project> {
+  const exported = (await import(pathToFileURL(file).href)).default
+  const project = typeof exported === 'function' ? await exported() : exported
+  try {
+    validateProject(project)
+  } catch (error) {
+    if (typeof project?.dispose === 'function') await project.dispose()
+    throw error
+  }
+  return project
 }
 
 export async function exists(file: string): Promise<boolean> {

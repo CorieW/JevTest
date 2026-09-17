@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, expect, it } from 'vitest'
 import { initialize } from '../src/init.js'
-import { findConfig } from '../src/config.js'
+import { findConfig, loadProject } from '../src/config.js'
 const directories: string[] = []
 async function workspace() {
   const directory = await mkdtemp(join(tmpdir(), 'jevtest-init-'))
@@ -50,4 +50,15 @@ it('requires explicit selection for ambiguous configs and explains missing confi
   await expect(findConfig(undefined, cwd)).rejects.toThrow('Multiple')
   expect(await findConfig('jevtest/config.ts', cwd)).toBe(join(cwd, 'jevtest/config.ts'))
   await expect(findConfig('missing.ts', cwd)).rejects.toThrow('not found')
+})
+it('cleans up factory resources when its returned project is invalid', async () => {
+  const cwd = await workspace()
+  const marker = join(cwd, 'disposed')
+  const file = join(cwd, 'invalid.mjs')
+  await writeFile(
+    file,
+    `import { writeFile } from 'node:fs/promises'; export default async () => ({ flows: [], dispose: async () => writeFile(${JSON.stringify(marker)}, 'closed') })`,
+  )
+  await expect(loadProject(file)).rejects.toThrow('adapter.open')
+  expect(await readFile(marker, 'utf8')).toBe('closed')
 })
