@@ -14,6 +14,7 @@ import { findConfig, loadProject } from './config.js'
 import { initialize } from './init.js'
 import { startWebServer } from './server.js'
 import { diagnose } from './doctor.js'
+import { setupLocal } from './setup.js'
 import { loadEnvironment } from './environment.js'
 
 async function main() {
@@ -22,6 +23,7 @@ async function main() {
     options: {
       config: { type: 'string' },
       'env-file': { type: 'string' },
+      'skip-browser': { type: 'boolean' },
       output: { type: 'string' },
       policy: { type: 'string', default: 'jev' },
       flow: { type: 'string' },
@@ -34,7 +36,7 @@ async function main() {
   const command = positionals[0] ?? 'help'
   if (values.help || command === 'help') {
     console.log(
-      `JevTest — bounded exploratory testing\n\n  jevtest init\n  jevtest doctor [--policy baseline] [--config path]\n  jevtest run --config project.config.ts [--policy jev|baseline] [--flow id]\n  jevtest discover --config project.config.ts --flow id\n  jevtest replay --config project.config.ts --trace path/to/trace.json\n\nOptions: --env-file .env.local --output directory --max-tokens 250000 --max-requests 100\nNode 24 loads erasable TypeScript configs. Config files are trusted executable code.\nSet TYPESAFE_API_KEY for Jev. Replay, discovery and baseline do not use the API.`,
+      `JevTest — bounded exploratory testing\n\n  jevtest setup [--skip-browser]\n  jevtest init\n  jevtest doctor [--policy baseline] [--config path]\n  jevtest run --config project.config.ts [--policy jev|baseline] [--flow id]\n  jevtest discover --config project.config.ts --flow id\n  jevtest replay --config project.config.ts --trace path/to/trace.json\n\nOptions: --env-file .env.local --output directory --max-tokens 250000 --max-requests 100\nNode 24 loads erasable TypeScript configs. Config files are trusted executable code.\nSet TYPESAFE_API_KEY for Jev. Replay, discovery and baseline do not use the API.`,
     )
     return
   }
@@ -42,6 +44,23 @@ async function main() {
     console.log(
       `Created integration: ${(await initialize()).join(', ')}\nBuild JevTest, then edit jevtest/flows.ts and the unfinished checks before running.`,
     )
+    return
+  }
+  if (command === 'setup') {
+    const controller = new AbortController()
+    const interrupt = () => controller.abort(new Error('Interrupted by user'))
+    process.once('SIGINT', interrupt)
+    process.once('SIGTERM', interrupt)
+    try {
+      await setupLocal({
+        skipBrowser: values['skip-browser'],
+        signal: controller.signal,
+        progress: console.log,
+      })
+    } finally {
+      process.removeListener('SIGINT', interrupt)
+      process.removeListener('SIGTERM', interrupt)
+    }
     return
   }
   if (!['run', 'discover', 'replay', 'doctor'].includes(command))

@@ -12,10 +12,11 @@ Requires Node 24 and pnpm 11.
 
 ```sh
 pnpm install
-pnpm browser:install
-pnpm verify
+pnpm setup:local
 pnpm demo
 ```
+
+`setup:local` builds this checkout and checks Chromium, installing it only when needed. Use `pnpm dev setup --skip-browser` for a build-only setup. Contributors should run the full `pnpm verify` suite before committing changes.
 
 The demo starts its own local shop, runs 12 labeled flows with six deliberately planted bugs, replays every trace, and writes an HTML report and metrics under `artifacts/baseline-*`. Expected planted failures do not make the demo command fail.
 
@@ -29,16 +30,18 @@ The live demo uses one shared 250,000-token admission budget and at most 80 requ
 
 ## Test your application
 
-1. Build with `pnpm build`.
+1. Run `pnpm setup:local` if you have not prepared the checkout yet.
 2. Run `pnpm dev init` to generate `jevtest/config.ts` and one unfinished flow.
 3. Edit `jevtest/flows.ts` and `jevtest/config.ts` with your URL, inputs, exact checks, and readiness condition.
-4. Set `TYPESAFE_API_KEY` in the process environment, or pass `--env-file .env.local` when running live.
+4. For live runs, set `TYPESAFE_API_KEY` in the process environment or pass `--env-file .env.local`.
 
 ```sh
-node dist/cli.js run  --max-tokens 250000
-node dist/cli.js run  --policy baseline
-node dist/cli.js discover  --flow checkout
-node dist/cli.js replay  --trace artifacts/run/RUN_ID/trace.json
+pnpm jevtest:typecheck
+pnpm dev doctor --policy baseline
+pnpm dev run --policy baseline
+pnpm dev run --max-tokens 250000
+pnpm dev discover --flow smoke
+pnpm dev replay --trace artifacts/run/RUN_ID/trace.json
 ```
 
 Use `--env-file` consistently with CLI commands, `pnpm benchmark`, and evaluation scripts. Existing process variables take precedence; environment files are never loaded implicitly.
