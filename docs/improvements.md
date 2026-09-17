@@ -40,7 +40,7 @@ The reservation baseline for variants 22–23 reused historical model judgments 
 
 The fresh assessment comparison used 73,438 tokens for v6 and 47,163 for the baseline: approximately **56% more tokens for one additional detection**. Its sole candidate miss was a duplicate debit. One healthy ledger assessment was uncertain, so zero false alarms does not mean every healthy case received a confident `expected` answer. Baseline assessment stopped after 23 cases when its conservative next-request reservation exceeded that run's allowance. The remaining case was evaluated once in a separately budgeted continuation and included in the paired results.
 
-Per-case sanitized comparisons are in each example's `results/improvements.json`; raw evidence and frozen source snapshots remain ignored under `artifacts/improvements/`. The fresh baseline summary is reconstructed from the saved 23-case checkpoints plus that single-case continuation. Source digests identify actual experiment snapshots, not the later formatting/documentation changes.
+Per-case evidence and frozen source snapshots are local files under ignored `artifacts/improvements/`; this report retains the aggregate comparisons. The fresh baseline summary is reconstructed from the saved 23-case checkpoints plus that single-case continuation. Source digests identify actual experiment snapshots, not the later formatting/documentation changes.
 
 ## Rejected changes and remaining limits
 

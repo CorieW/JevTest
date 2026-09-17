@@ -210,7 +210,7 @@ async function updateReadme(benchmark: Benchmark) {
           `| ${f.fault} | ${f.exposed}/${f.total} | ${f.modelDetected}/${f.total} | ${f.combinedDetected}/${f.total} |`,
       ),
       '',
-      `Missed by the model: ${live.cases.filter((c) => c.fault && !c.modelDetected).length} cases; inspect the per-case actions, judgments, and failed assertions in [Jev results](results/jev.json).`,
+      `Missed by the model: ${live.cases.filter((c) => c.fault && !c.modelDetected).length} cases; inspect the per-case actions, judgments, and failed assertions in the local, Git-ignored results/jev.json file.`,
       '',
       ...Array.from(
         unfinished,

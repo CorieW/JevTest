@@ -32,7 +32,7 @@ The current application was evaluated on **2026-09-17** using all 240 flows, a t
 | Incomplete / infrastructure errors                      | 0 / 0   |
 | API requests / charged tokens                           | 0 / 0   |
 
-This known-route run validates the application, fault reachability, independent assertions, and replay. **Jev was not called; these are not model-accuracy scores.** [Sanitized per-case results](results/realistic-reference.json). The result file includes the source digest and environment.
+This known-route run validates the application, fault reachability, independent assertions, and replay. **Jev was not called; these are not model-accuracy scores.** Per-case evidence, source digests, and environment details are written to ignored `artifacts/benchmarks-*` directories when evaluations run.
 
 <!-- evaluation:end -->
 

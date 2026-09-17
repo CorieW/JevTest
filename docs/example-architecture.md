@@ -16,7 +16,6 @@ Each of `examples/reservations`, `examples/ledger`, and `examples/taskboard` has
 | `jevtest/config.ts` | JevTest configuration, seeded policy, and application wiring |
 | `jevtest/cases.ts`  | 240 paired user flows and their public input fixtures        |
 | `jevtest/oracle.ts` | Independent exact checks against observed saved records      |
-| `results/`          | Sanitized evaluations, with historical revisions identified  |
 
 Application code lives in `src/`. JevTest configuration, paired fixtures, and independent assertions live in `jevtest/` within the same example directory. Application source does not import these evaluation modules. The shared benchmark catalog loads each `jevtest/config.ts`; these definitions are used by `pnpm benchmark` and `pnpm benchmark:serve`.
 
@@ -69,4 +68,4 @@ The older Jev live results describe the pre-refactor fixtures. They remain avail
 
 On 2026-09-17, `pnpm verify` passed all 67 tests, secret scanning, formatting, lint, type checking, and the build. The complete 720-flow browser/reference evaluation passed all 360 healthy cases, exercised and detected all 360 planted faults through independent exact assertions, and reproduced all 720 traces. No cases were incomplete and no infrastructure errors or healthy false alarms occurred. API requests and charged tokens were both zero.
 
-The per-application `results/realistic-reference.json` files retain every case outcome, action sequence, replay outcome, environment, and source digest. Earlier live result files remain unchanged.
+Evaluation evidence retains every case outcome, action sequence, replay outcome, environment, and source digest under ignored `artifacts/benchmarks-*` directories. README files keep the aggregate results. Optional `--write-results` output in `examples/<app>/results/` is local and ignored by Git.

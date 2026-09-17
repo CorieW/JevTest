@@ -24,7 +24,7 @@ The complete 720-flow reference run on **2026-09-17** produced:
 | Incomplete / infrastructure errors                    | 0 / 0   |
 | API requests / charged tokens                         | 0 / 0   |
 
-The reference policy follows known routes. These results validate the applications, independent checks, and replay. **Live Jev accuracy has not been measured on the current larger applications.** Each application's README links its per-case results; the shop reports its separate twelve-flow evaluation.
+The reference policy follows known routes. These results validate the applications, independent checks, and replay. **Live Jev accuracy has not been measured on the current larger applications.** Each application's README records its summary; the shop reports its separate twelve-flow evaluation.
 
 ## Run
 
@@ -51,4 +51,4 @@ Live evaluation uses an explicit token budget shared across the command's worker
 
 Jev sees public goals, inputs, controls, and observed records. Fault labels, reference routes, and oracle results are excluded from its decisions. Detection credit requires the fault to have been exercised. Model-only findings and combined findings, which include exact assertions, are scored separately; healthy-case warnings count as false alarms.
 
-Every trace is replayed in a fresh session without model calls. Reports, traces, and usage go to ignored `artifacts/benchmarks-*` directories. Reference paths take four to six actions; the runner allows twelve. These finite, parameterized examples measure performance on their defined tasks, not general bug recall across arbitrary software.
+Every trace is replayed in a fresh session without model calls. Reports, traces, and usage go to ignored `artifacts/benchmarks-*` directories. The optional `--write-results` flag also generates local `examples/<app>/results/` files and refreshes README summaries; these results directories are ignored by Git. Reference paths take four to six actions; the runner allows twelve. These finite, parameterized examples measure performance on their defined tasks, not general bug recall across arbitrary software.
