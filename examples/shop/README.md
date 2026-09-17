@@ -22,20 +22,18 @@ pnpm dev replay --config examples/shop/config.ts --trace artifacts/run/RUN_ID/tr
 
 The fixture server defaults to `http://127.0.0.1:4317`. Set `SHOP_URL` to match a different server. Replay requires the original fixture URL to remain available; ephemeral demo runs perform replay before shutting down.
 
-This is a plumbing/regression benchmark with a small constrained action space, not an estimate of performance on arbitrary websites. Broader validation should include branching flows, ambiguous actions, noisy state, and bugs without prewritten assertions.
+This compact benchmark checks browser execution, assertions, and replay within a constrained checkout flow. Its scores do not estimate performance on arbitrary websites.
 
 ## Evaluation results
 
-The initial development run on 2026-09-17 evaluated all 12 flows. These historical measurements predate the larger [720-flow benchmark suite](../README.md).
+The current baseline run on **2026-09-17** evaluated all twelve flows:
 
-| Metric                                       | Reference traversal | Live Jev       |
-| -------------------------------------------- | ------------------- | -------------- |
-| Healthy flows passed                         | 6/6                 | 6/6            |
-| Planted bugs detected by the combined system | 6/6                 | 6/6            |
-| Healthy false alarms                         | 0                   | 0              |
-| Traces reproduced                            | 12/12               | 12/12          |
-| Bugs independently flagged by the model      | N/A                 | 5/6            |
-| API requests                                 | 0                   | 64             |
-| Input + output tokens                        | 0                   | 70,807 + 2,336 |
+| Metric                                  | Result |
+| --------------------------------------- | ------ |
+| Healthy flows passed                    | 6/6    |
+| Planted faults detected by exact checks | 6/6    |
+| Healthy false alarms                    | 0      |
+| Traces reproduced                       | 12/12  |
+| API requests / charged tokens           | 0 / 0  |
 
-Total live usage was **73,143 tokens**. The requested model was `jev-latest`; the pilot did not capture its resolved version. Source evidence and limitations are recorded in [validation notes](../../docs/validation.md). Combined detection includes exact assertions and is not model-only recall.
+This deterministic run validates the shop and replay; it does not measure live Jev accuracy. Running `pnpm demo` produces per-flow outcomes in `metrics.json` and a browsable `report.html` under `artifacts/baseline-*`.

@@ -4,7 +4,7 @@
 
 JevTest is a local TypeScript library and CLI for exploratory browser testing. Supply a goal, fixture data, available actions, and exact success assertions. Jev chooses actions and judges observed results; Playwright executes them in isolated sessions and saves replayable evidence.
 
-**Status:** initial working implementation. Source is publicly visible at [CorieW/JevTest](https://github.com/CorieW/JevTest). Licensing terms are pending adoption; no usage license is granted yet and package publishing remains disabled. See [licensing intent](docs/licensing.md).
+**Status:** working local library and CLI. Source is publicly visible at [CorieW/JevTest](https://github.com/CorieW/JevTest). Licensing terms are pending adoption; no usage license is granted yet and package publishing remains disabled. See [licensing intent](docs/licensing.md).
 
 ## Get started
 
@@ -63,20 +63,18 @@ Every run saves `trace.json`, page snapshots, and masked screenshots. Suite outp
 ```text
 src/             Runner, Jev policy, Playwright adapter, CLI, replay, reports, graph
 test/            Offline contract and real Chromium integration tests
-examples/shop/   Controlled shop and 12-flow benchmark
+examples/        Four tested applications, fixtures, and evaluation results
 config/          TypeScript, ESLint, Prettier, Vitest configuration
 docs/            Architecture, integration constraints, validation, licensing intent
 .github/         CI, dependency updates, issue and PR templates
 ```
 
-Adapted from the structure of [ultimate-project-template](https://github.com/CorieW/ultimate-project-template). One root package; no `apps/`, `packages/`, Turbo, private registry, or `@coriew/*` dependencies. `pnpm-workspace.yaml` contains only the esbuild install-script permission, not workspace definitions.
+The project uses one root TypeScript package. Shared example hosting and evaluation code lives in `test/benchmarks/`.
 
-See [the project guide](docs/project-guide.md), [shop example](examples/shop/README.md), and [validation results](docs/validation.md).
+## Examples and validation
 
-For larger evaluations, see the [benchmark mini-codebases](examples/README.md): reservations, a synthetic ledger, and a task board, each with 240 labeled flows and measured results in its README. `pnpm benchmark --mode reference` uses no API; `--mode jev` opts into bounded live evaluation.
+The [example applications](examples/README.md) include reservations, a synthetic ledger, a task board, and a shop. The three larger applications define 720 flows with editable forms, business services, persistence, and request validation.
 
-The [local improvement report](docs/improvements.md) separates historical full-suite results from paired comparisons of the revised policy, including false alarms, remaining misses, and token cost.
+The current reference evaluation passed all 360 healthy cases, detected all 360 planted faults through exact checks, and reproduced all 720 traces without API calls. Live Jev accuracy has not been measured on these application versions. Run `pnpm benchmark --mode reference` to repeat the evaluation.
 
-The [complete 720-flow live rerun](docs/full-live-comparison.md) caught 313/360 planted faults through model judgments, up from 245/360, with healthy-case false alarms falling from 28 to zero. The report separates improved fault exposure and benchmark repairs from assessment quality.
-
-The larger examples now have validated forms, reusable domain services, local persistence, and duplicate/stale-request handling. See [example application architecture](docs/example-architecture.md). Shared evaluation tooling is under `test/benchmarks/`; `examples/` contains only the four applications covered by tests. Earlier live scores remain historical until these changed applications receive a new live evaluation.
+See the [project guide](docs/project-guide.md) for integration and budgets, and [example architecture](docs/example-architecture.md) for application structure and evaluation details.
