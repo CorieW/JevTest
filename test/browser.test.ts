@@ -8,7 +8,7 @@ import { runSuite } from '../src/runner.js'
 import { TraversalPolicy } from '../src/jev.js'
 import { replay } from '../src/replay.js'
 import { crawl, graphFromRuns } from '../src/graph.js'
-import { discoverActions } from '../src/browser.js'
+import { createBrowserAdapter, discoverActions } from '../src/browser.js'
 import { writeReport } from '../src/report.js'
 import type { RunResult } from '../src/types.js'
 
@@ -27,6 +27,40 @@ beforeAll(async () => {
 }, 120_000)
 afterAll(async () => {
   await shop?.close()
+})
+it('waits for shared cleanup when close is called concurrently', async () => {
+  let markEntered!: () => void
+  let releaseCleanup!: () => void
+  const entered = new Promise<void>((resolve) => {
+    markEntered = resolve
+  })
+  const release = new Promise<void>((resolve) => {
+    releaseCleanup = resolve
+  })
+  let calls = 0
+  const adapter = createBrowserAdapter({
+    check: async () => ({ complete: false, assertions: [] }),
+    cleanup: async () => {
+      calls++
+      markEntered()
+      await release
+    },
+  })
+  const session = await adapter.open(shopProject(shop.url).flows[0]!, 'concurrent-close')
+  const first = session.close()
+  await entered
+  let finished = false
+  const second = session.close().then(() => {
+    finished = true
+  })
+  try {
+    await Promise.resolve()
+    expect(finished).toBe(false)
+    expect(calls).toBe(1)
+  } finally {
+    releaseCleanup()
+    await Promise.all([first, second])
+  }
 })
 it('passes all six healthy flows and detects all six planted faults', () => {
   for (const result of results) {
@@ -85,6 +119,16 @@ it('discovers only visible usable controls and supplied input choices', async ()
     const actions = await discoverActions(page, { '#name': ['Ada'], '#size': ['S'] })
     expect(actions.map((a) => a.selector).sort()).toEqual(['#go', '#name', '#size'])
     expect(actions.find((a) => a.kind === 'fill')?.value).toBe('Ada')
+    await page.setContent(
+      '<label for="email">Contact email</label><input id="email"><span id="heading">Plan size</span><select id="plan" aria-labelledby="heading"><option>S</option></select><input type="submit" value="Save profile" id="save">',
+    )
+    const labeled = await discoverActions(page, {
+      '#email': ['person@example.test'],
+      '#plan': ['S'],
+    })
+    expect(labeled.find((a) => a.selector === '#email')?.label).toContain('Contact email')
+    expect(labeled.find((a) => a.selector === '#plan')?.label).toContain('Plan size')
+    expect(labeled.find((a) => a.selector === '#save')?.label).toContain('Save profile')
   } finally {
     await browser.close()
   }

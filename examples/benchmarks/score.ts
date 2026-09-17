@@ -43,6 +43,12 @@ export function scoreCase(
       choice: s.assessment?.choice ?? null,
       rawChoice: s.assessment?.rawChoice ?? null,
       confidence: s.assessment?.confidence ?? null,
+      ...(s.assessment?.checks ? { checks: s.assessment.checks } : {}),
+      ...(s.assessment?.initialChecks ? { initialChecks: s.assessment.initialChecks } : {}),
+      ...(s.assessment?.verificationChecks
+        ? { verificationChecks: s.assessment.verificationChecks }
+        : {}),
+      ...(s.assessment?.reviewError ? { reviewError: s.assessment.reviewError } : {}),
     })),
     failedAssertions: run.steps.flatMap((s) =>
       (s.check?.complete ? s.check.assertions : [])
@@ -64,7 +70,9 @@ export function scoreCase(
       run.stopDecision?.usage?.outputTokens ?? 0,
     ),
     uncertainAssessments: run.steps.filter((s) => s.assessment?.choice === 'uncertain').length,
-    assessmentErrors: run.steps.filter((s) => s.error?.startsWith('Assessment unavailable')).length,
+    assessmentErrors: run.steps.filter(
+      (s) => s.error?.startsWith('Assessment unavailable') || s.assessment?.reviewError,
+    ).length,
   }
 }
 export type CaseScore = ReturnType<typeof scoreCase>
@@ -77,6 +85,8 @@ export function summarize(rows: CaseScore[]) {
   const combinedTP = faulty.filter((r) => r.combinedDetected).length
   const modelFP = healthy.filter((r) => r.modelFlagged).length
   const combinedFP = healthy.filter((r) => r.combinedFlagged).length
+  const modelTN = healthy.filter((r) => r.status === 'passed' && !r.modelFlagged).length
+  const combinedTN = healthy.filter((r) => r.status === 'passed' && !r.combinedFlagged).length
   return {
     flows: rows.length,
     healthy: healthy.length,
@@ -86,7 +96,8 @@ export function summarize(rows: CaseScore[]) {
       truePositives: modelTP,
       falseNegatives: faulty.length - modelTP,
       falsePositives: modelFP,
-      trueNegatives: healthy.length - modelFP,
+      trueNegatives: modelTN,
+      unclassifiedHealthy: healthy.length - modelFP - modelTN,
       precision: ratio(modelTP, modelTP + modelFP),
       recall: ratio(modelTP, faulty.length),
       exposedRecall: ratio(modelTP, exposed.length),
@@ -96,7 +107,8 @@ export function summarize(rows: CaseScore[]) {
       truePositives: combinedTP,
       falseNegatives: faulty.length - combinedTP,
       falsePositives: combinedFP,
-      trueNegatives: healthy.length - combinedFP,
+      trueNegatives: combinedTN,
+      unclassifiedHealthy: healthy.length - combinedFP - combinedTN,
       precision: ratio(combinedTP, combinedTP + combinedFP),
       recall: ratio(combinedTP, faulty.length),
       falsePositiveRate: ratio(combinedFP, healthy.length),

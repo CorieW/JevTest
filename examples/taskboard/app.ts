@@ -27,11 +27,19 @@ export interface BoardState extends Screen {
   completedCount: number
   result: string
 }
-function labels(s: Scenario): [string, string, string] {
+function labels(s: Scenario, operation: string): [string, string, string] {
+  if (operation === 'complete' || operation === 'archive') {
+    const verb = operation === 'complete' ? 'Complete' : 'Archive'
+    return [
+      `${verb} ${s.input.taskId} in ${s.input.project}`,
+      `${verb} T-OTHER in ${s.input.project}`,
+      `${verb} T-ANOTHER in ${s.input.project}`,
+    ]
+  }
   return [
     `${s.input.taskId} in ${s.input.project}, assign to ${s.input.assignee}`,
     `T-OTHER in ${s.input.project}, assign to Other`,
-    `${s.input.taskId} in ${s.input.project}, assign to Other`,
+    `T-ANOTHER in ${s.input.project}, assign to Other`,
   ]
 }
 const menu = [
@@ -65,6 +73,15 @@ export const taskboard = defineBenchmark<BoardState>({
         status: 'open',
         archived: false,
       },
+      {
+        id: 'T-ANOTHER',
+        project: String(s.input.project),
+        title: 'Another unrelated task',
+        assignee: 'Other',
+        priority: 'medium',
+        status: 'open',
+        archived: false,
+      },
     ],
     activities: [],
     completedCount: 0,
@@ -82,9 +99,9 @@ export const taskboard = defineBenchmark<BoardState>({
       completedCount: state.completedCount,
       activities: state.activities,
       result: state.result,
-      selection: state.selected ? labels(s)[selectedIndex(state, s)]! : null,
+      selection: state.selected ? labels(s, state.operation)[selectedIndex(state, s)]! : null,
     },
-    buttons: buttons(state, menu, optionsFor(s, labels(s))),
+    buttons: buttons(state, menu, optionsFor(s, labels(s, state.operation))),
   }),
   reduce(state, action, s) {
     const moved = navigate(state, action)
@@ -92,8 +109,12 @@ export const taskboard = defineBenchmark<BoardState>({
     const next = structuredClone(state)
     next.screen = 'done'
     const choice = selectedIndex(state, s)
-    const fault = choice === 0 && state.operation === s.workflow ? s.fault : null
-    const task = next.tasks[choice === 1 ? 1 : 0]!
+    const sameOperation =
+      state.operation === s.workflow ||
+      (['assign', 'permission'].includes(state.operation) &&
+        ['assign', 'permission'].includes(s.workflow))
+    const fault = choice === 0 && sameOperation ? s.fault : null
+    const task = next.tasks[choice]!
     if (s.input.role === 'viewer' && fault !== 'permission-bypass') {
       next.result = 'denied'
       if (fault === 'denied-write') task.assignee = String(s.input.assignee)

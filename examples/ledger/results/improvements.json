@@ -1,0 +1,1376 @@
+{
+  "version": 1,
+  "app": "ledger",
+  "date": "2026-09-17",
+  "notes": [
+    "Corrected fixtures; historical full-suite results are separate.",
+    "Candidate v5 has a full-flow comparison; retained v6 has terminal-assessment confirmation only.",
+    "Zero observed false alarms does not establish zero real-world false-positive risk."
+  ],
+  "fullFlowValidation": {
+    "baseline": {
+      "source": "artifacts/improvements/baseline-validation-2026-09-17T08-07-34-181Z",
+      "sourceDigest": "e23432eef9f369ef40d1ea2ec85fa7e586456e09757f1b4e85f6fac9eab9171a",
+      "mode": "flows",
+      "variants": [22, 23],
+      "model": "jev-1.13.0",
+      "summary": {
+        "flows": 16,
+        "healthy": 8,
+        "faulty": 8,
+        "exposed": 8,
+        "model": {
+          "truePositives": 5,
+          "falseNegatives": 3,
+          "falsePositives": 0,
+          "trueNegatives": 8,
+          "unclassifiedHealthy": 0,
+          "precision": 1,
+          "recall": 0.625,
+          "exposedRecall": 0.625,
+          "falsePositiveRate": 0
+        },
+        "combined": {
+          "truePositives": 8,
+          "falseNegatives": 0,
+          "falsePositives": 0,
+          "trueNegatives": 8,
+          "unclassifiedHealthy": 0,
+          "precision": 1,
+          "recall": 1,
+          "falsePositiveRate": 0
+        },
+        "healthyCompleted": 8,
+        "terminal": 16,
+        "incomplete": 0,
+        "errors": 0,
+        "replayed": 16,
+        "unexposedModelWarnings": 0,
+        "uncertainAssessments": 12,
+        "assessmentErrors": 0,
+        "byFault": [
+          {
+            "fault": "double-refund",
+            "total": 1,
+            "exposed": 1,
+            "modelDetected": 0,
+            "combinedDetected": 1
+          },
+          {
+            "fault": "duplicate-debit",
+            "total": 1,
+            "exposed": 1,
+            "modelDetected": 0,
+            "combinedDetected": 1
+          },
+          {
+            "fault": "freeze-all-cards",
+            "total": 1,
+            "exposed": 1,
+            "modelDetected": 1,
+            "combinedDetected": 1
+          },
+          {
+            "fault": "limit-bypass",
+            "total": 1,
+            "exposed": 1,
+            "modelDetected": 1,
+            "combinedDetected": 1
+          },
+          {
+            "fault": "rejection-fee",
+            "total": 1,
+            "exposed": 1,
+            "modelDetected": 1,
+            "combinedDetected": 1
+          },
+          {
+            "fault": "unmarked-refund",
+            "total": 1,
+            "exposed": 1,
+            "modelDetected": 0,
+            "combinedDetected": 1
+          },
+          {
+            "fault": "wrong-card",
+            "total": 1,
+            "exposed": 1,
+            "modelDetected": 1,
+            "combinedDetected": 1
+          },
+          {
+            "fault": "wrong-recipient",
+            "total": 1,
+            "exposed": 1,
+            "modelDetected": 1,
+            "combinedDetected": 1
+          }
+        ]
+      },
+      "cases": [
+        {
+          "id": "case-cfc611eef72fd421",
+          "workflow": "transfer",
+          "variant": 22,
+          "fault": null,
+          "status": "passed",
+          "modelDetected": false,
+          "combinedDetected": false,
+          "modelFlagged": false,
+          "combinedFlagged": false,
+          "reproduced": true
+        },
+        {
+          "id": "case-22e720368d3dd63f",
+          "workflow": "transfer",
+          "variant": 22,
+          "fault": "wrong-recipient",
+          "status": "failed",
+          "modelDetected": true,
+          "combinedDetected": true,
+          "modelFlagged": true,
+          "combinedFlagged": true,
+          "reproduced": true
+        },
+        {
+          "id": "case-383ae0a9f4992d16",
+          "workflow": "transfer",
+          "variant": 23,
+          "fault": null,
+          "status": "passed",
+          "modelDetected": false,
+          "combinedDetected": false,
+          "modelFlagged": false,
+          "combinedFlagged": false,
+          "reproduced": true
+        },
+        {
+          "id": "case-8d476e2e67b3160a",
+          "workflow": "transfer",
+          "variant": 23,
+          "fault": "duplicate-debit",
+          "status": "failed",
+          "modelDetected": false,
+          "combinedDetected": true,
+          "modelFlagged": false,
+          "combinedFlagged": true,
+          "reproduced": true
+        },
+        {
+          "id": "case-b650869251dfffaf",
+          "workflow": "refund",
+          "variant": 22,
+          "fault": null,
+          "status": "passed",
+          "modelDetected": false,
+          "combinedDetected": false,
+          "modelFlagged": false,
+          "combinedFlagged": false,
+          "reproduced": true
+        },
+        {
+          "id": "case-cd10722fca17123f",
+          "workflow": "refund",
+          "variant": 22,
+          "fault": "unmarked-refund",
+          "status": "failed",
+          "modelDetected": false,
+          "combinedDetected": true,
+          "modelFlagged": false,
+          "combinedFlagged": true,
+          "reproduced": true
+        },
+        {
+          "id": "case-4f30b8b18f26ba17",
+          "workflow": "refund",
+          "variant": 23,
+          "fault": null,
+          "status": "passed",
+          "modelDetected": false,
+          "combinedDetected": false,
+          "modelFlagged": false,
+          "combinedFlagged": false,
+          "reproduced": true
+        },
+        {
+          "id": "case-8e4f0d4cb8e3d540",
+          "workflow": "refund",
+          "variant": 23,
+          "fault": "double-refund",
+          "status": "failed",
+          "modelDetected": false,
+          "combinedDetected": true,
+          "modelFlagged": false,
+          "combinedFlagged": true,
+          "reproduced": true
+        },
+        {
+          "id": "case-bbc9ccb2049be907",
+          "workflow": "freeze",
+          "variant": 22,
+          "fault": null,
+          "status": "passed",
+          "modelDetected": false,
+          "combinedDetected": false,
+          "modelFlagged": false,
+          "combinedFlagged": false,
+          "reproduced": true
+        },
+        {
+          "id": "case-1d6d72c8b0368f9e",
+          "workflow": "freeze",
+          "variant": 22,
+          "fault": "wrong-card",
+          "status": "failed",
+          "modelDetected": true,
+          "combinedDetected": true,
+          "modelFlagged": true,
+          "combinedFlagged": true,
+          "reproduced": true
+        },
+        {
+          "id": "case-533513cb47bcfb93",
+          "workflow": "freeze",
+          "variant": 23,
+          "fault": null,
+          "status": "passed",
+          "modelDetected": false,
+          "combinedDetected": false,
+          "modelFlagged": false,
+          "combinedFlagged": false,
+          "reproduced": true
+        },
+        {
+          "id": "case-74fb502b95824ec9",
+          "workflow": "freeze",
+          "variant": 23,
+          "fault": "freeze-all-cards",
+          "status": "failed",
+          "modelDetected": true,
+          "combinedDetected": true,
+          "modelFlagged": true,
+          "combinedFlagged": true,
+          "reproduced": true
+        },
+        {
+          "id": "case-feb0639455cd27c1",
+          "workflow": "limit",
+          "variant": 22,
+          "fault": null,
+          "status": "passed",
+          "modelDetected": false,
+          "combinedDetected": false,
+          "modelFlagged": false,
+          "combinedFlagged": false,
+          "reproduced": true
+        },
+        {
+          "id": "case-c590807e64b2ab33",
+          "workflow": "limit",
+          "variant": 22,
+          "fault": "limit-bypass",
+          "status": "failed",
+          "modelDetected": true,
+          "combinedDetected": true,
+          "modelFlagged": true,
+          "combinedFlagged": true,
+          "reproduced": true
+        },
+        {
+          "id": "case-ad7c4bbff9e012b0",
+          "workflow": "limit",
+          "variant": 23,
+          "fault": null,
+          "status": "passed",
+          "modelDetected": false,
+          "combinedDetected": false,
+          "modelFlagged": false,
+          "combinedFlagged": false,
+          "reproduced": true
+        },
+        {
+          "id": "case-6ed17b505fd796cd",
+          "workflow": "limit",
+          "variant": 23,
+          "fault": "rejection-fee",
+          "status": "failed",
+          "modelDetected": true,
+          "combinedDetected": true,
+          "modelFlagged": true,
+          "combinedFlagged": true,
+          "reproduced": true
+        }
+      ],
+      "reusedModelJudgments": false
+    },
+    "candidateV5": {
+      "source": "artifacts/improvements/candidate-validation-2026-09-17T08-08-37-365Z",
+      "sourceDigest": "7aacfa207699a8dd1ed966c7888df87b37eaa72aed13dc39dbc01fd0ebb905f2",
+      "mode": "flows",
+      "variants": [22, 23],
+      "model": "jev-1.13.0",
+      "summary": {
+        "flows": 16,
+        "healthy": 8,
+        "faulty": 8,
+        "exposed": 8,
+        "model": {
+          "truePositives": 5,
+          "falseNegatives": 3,
+          "falsePositives": 0,
+          "trueNegatives": 8,
+          "unclassifiedHealthy": 0,
+          "precision": 1,
+          "recall": 0.625,
+          "exposedRecall": 0.625,
+          "falsePositiveRate": 0
+        },
+        "combined": {
+          "truePositives": 8,
+          "falseNegatives": 0,
+          "falsePositives": 0,
+          "trueNegatives": 8,
+          "unclassifiedHealthy": 0,
+          "precision": 1,
+          "recall": 1,
+          "falsePositiveRate": 0
+        },
+        "healthyCompleted": 8,
+        "terminal": 16,
+        "incomplete": 0,
+        "errors": 0,
+        "replayed": 16,
+        "unexposedModelWarnings": 0,
+        "uncertainAssessments": 36,
+        "assessmentErrors": 0,
+        "byFault": [
+          {
+            "fault": "double-refund",
+            "total": 1,
+            "exposed": 1,
+            "modelDetected": 0,
+            "combinedDetected": 1
+          },
+          {
+            "fault": "duplicate-debit",
+            "total": 1,
+            "exposed": 1,
+            "modelDetected": 0,
+            "combinedDetected": 1
+          },
+          {
+            "fault": "freeze-all-cards",
+            "total": 1,
+            "exposed": 1,
+            "modelDetected": 1,
+            "combinedDetected": 1
+          },
+          {
+            "fault": "limit-bypass",
+            "total": 1,
+            "exposed": 1,
+            "modelDetected": 1,
+            "combinedDetected": 1
+          },
+          {
+            "fault": "rejection-fee",
+            "total": 1,
+            "exposed": 1,
+            "modelDetected": 1,
+            "combinedDetected": 1
+          },
+          {
+            "fault": "unmarked-refund",
+            "total": 1,
+            "exposed": 1,
+            "modelDetected": 0,
+            "combinedDetected": 1
+          },
+          {
+            "fault": "wrong-card",
+            "total": 1,
+            "exposed": 1,
+            "modelDetected": 1,
+            "combinedDetected": 1
+          },
+          {
+            "fault": "wrong-recipient",
+            "total": 1,
+            "exposed": 1,
+            "modelDetected": 1,
+            "combinedDetected": 1
+          }
+        ]
+      },
+      "cases": [
+        {
+          "id": "case-cfc611eef72fd421",
+          "workflow": "transfer",
+          "variant": 22,
+          "fault": null,
+          "status": "passed",
+          "modelDetected": false,
+          "combinedDetected": false,
+          "modelFlagged": false,
+          "combinedFlagged": false,
+          "reproduced": true
+        },
+        {
+          "id": "case-22e720368d3dd63f",
+          "workflow": "transfer",
+          "variant": 22,
+          "fault": "wrong-recipient",
+          "status": "failed",
+          "modelDetected": true,
+          "combinedDetected": true,
+          "modelFlagged": true,
+          "combinedFlagged": true,
+          "reproduced": true
+        },
+        {
+          "id": "case-383ae0a9f4992d16",
+          "workflow": "transfer",
+          "variant": 23,
+          "fault": null,
+          "status": "passed",
+          "modelDetected": false,
+          "combinedDetected": false,
+          "modelFlagged": false,
+          "combinedFlagged": false,
+          "reproduced": true
+        },
+        {
+          "id": "case-8d476e2e67b3160a",
+          "workflow": "transfer",
+          "variant": 23,
+          "fault": "duplicate-debit",
+          "status": "failed",
+          "modelDetected": false,
+          "combinedDetected": true,
+          "modelFlagged": false,
+          "combinedFlagged": true,
+          "reproduced": true
+        },
+        {
+          "id": "case-b650869251dfffaf",
+          "workflow": "refund",
+          "variant": 22,
+          "fault": null,
+          "status": "passed",
+          "modelDetected": false,
+          "combinedDetected": false,
+          "modelFlagged": false,
+          "combinedFlagged": false,
+          "reproduced": true
+        },
+        {
+          "id": "case-cd10722fca17123f",
+          "workflow": "refund",
+          "variant": 22,
+          "fault": "unmarked-refund",
+          "status": "failed",
+          "modelDetected": false,
+          "combinedDetected": true,
+          "modelFlagged": false,
+          "combinedFlagged": true,
+          "reproduced": true
+        },
+        {
+          "id": "case-4f30b8b18f26ba17",
+          "workflow": "refund",
+          "variant": 23,
+          "fault": null,
+          "status": "passed",
+          "modelDetected": false,
+          "combinedDetected": false,
+          "modelFlagged": false,
+          "combinedFlagged": false,
+          "reproduced": true
+        },
+        {
+          "id": "case-8e4f0d4cb8e3d540",
+          "workflow": "refund",
+          "variant": 23,
+          "fault": "double-refund",
+          "status": "failed",
+          "modelDetected": false,
+          "combinedDetected": true,
+          "modelFlagged": false,
+          "combinedFlagged": true,
+          "reproduced": true
+        },
+        {
+          "id": "case-bbc9ccb2049be907",
+          "workflow": "freeze",
+          "variant": 22,
+          "fault": null,
+          "status": "passed",
+          "modelDetected": false,
+          "combinedDetected": false,
+          "modelFlagged": false,
+          "combinedFlagged": false,
+          "reproduced": true
+        },
+        {
+          "id": "case-1d6d72c8b0368f9e",
+          "workflow": "freeze",
+          "variant": 22,
+          "fault": "wrong-card",
+          "status": "failed",
+          "modelDetected": true,
+          "combinedDetected": true,
+          "modelFlagged": true,
+          "combinedFlagged": true,
+          "reproduced": true
+        },
+        {
+          "id": "case-533513cb47bcfb93",
+          "workflow": "freeze",
+          "variant": 23,
+          "fault": null,
+          "status": "passed",
+          "modelDetected": false,
+          "combinedDetected": false,
+          "modelFlagged": false,
+          "combinedFlagged": false,
+          "reproduced": true
+        },
+        {
+          "id": "case-74fb502b95824ec9",
+          "workflow": "freeze",
+          "variant": 23,
+          "fault": "freeze-all-cards",
+          "status": "failed",
+          "modelDetected": true,
+          "combinedDetected": true,
+          "modelFlagged": true,
+          "combinedFlagged": true,
+          "reproduced": true
+        },
+        {
+          "id": "case-feb0639455cd27c1",
+          "workflow": "limit",
+          "variant": 22,
+          "fault": null,
+          "status": "passed",
+          "modelDetected": false,
+          "combinedDetected": false,
+          "modelFlagged": false,
+          "combinedFlagged": false,
+          "reproduced": true
+        },
+        {
+          "id": "case-c590807e64b2ab33",
+          "workflow": "limit",
+          "variant": 22,
+          "fault": "limit-bypass",
+          "status": "failed",
+          "modelDetected": true,
+          "combinedDetected": true,
+          "modelFlagged": true,
+          "combinedFlagged": true,
+          "reproduced": true
+        },
+        {
+          "id": "case-ad7c4bbff9e012b0",
+          "workflow": "limit",
+          "variant": 23,
+          "fault": null,
+          "status": "passed",
+          "modelDetected": false,
+          "combinedDetected": false,
+          "modelFlagged": false,
+          "combinedFlagged": false,
+          "reproduced": true
+        },
+        {
+          "id": "case-6ed17b505fd796cd",
+          "workflow": "limit",
+          "variant": 23,
+          "fault": "rejection-fee",
+          "status": "failed",
+          "modelDetected": true,
+          "combinedDetected": true,
+          "modelFlagged": true,
+          "combinedFlagged": true,
+          "reproduced": true
+        }
+      ],
+      "reusedModelJudgments": false
+    }
+  },
+  "freshTerminalAssessment": {
+    "variants": [27],
+    "model": "jev-1.13.0",
+    "baseline": {
+      "sources": ["artifacts/improvements/baseline-fresh-2026-09-17T08-16-01-741Z"],
+      "policySha256": "e24faef64a527e79058ac370da8b5eec7b6e1251bb07f18b960e67116c99d6df",
+      "flows": 8,
+      "faulty": 4,
+      "detected": 2,
+      "healthyFalseAlarms": 0,
+      "healthyExpected": 3,
+      "healthyUncertain": 1,
+      "cases": [
+        {
+          "id": "case-ff893c26bdd612cb",
+          "workflow": "transfer",
+          "variant": 27,
+          "fault": null,
+          "assessment": {
+            "choice": "uncertain",
+            "confidence": 0.4,
+            "probabilities": {
+              "expected": 0.6,
+              "unexpected": 0.38,
+              "uncertain": 0.02
+            },
+            "model": "jev-1.13.0",
+            "usage": {
+              "inputTokens": 1872,
+              "outputTokens": 40
+            },
+            "rawChoice": "expected"
+          }
+        },
+        {
+          "id": "case-e77221d4b8bdc0c5",
+          "workflow": "transfer",
+          "variant": 27,
+          "fault": "duplicate-debit",
+          "assessment": {
+            "choice": "expected",
+            "confidence": 0.97,
+            "probabilities": {
+              "expected": 0.98,
+              "unexpected": 0.02,
+              "uncertain": 0
+            },
+            "model": "jev-1.13.0",
+            "usage": {
+              "inputTokens": 1908,
+              "outputTokens": 40
+            },
+            "rawChoice": "expected"
+          }
+        },
+        {
+          "id": "case-d739740b695c5309",
+          "workflow": "refund",
+          "variant": 27,
+          "fault": null,
+          "assessment": {
+            "choice": "expected",
+            "confidence": 0.94,
+            "probabilities": {
+              "uncertain": 0,
+              "unexpected": 0.04,
+              "expected": 0.96
+            },
+            "model": "jev-1.13.0",
+            "usage": {
+              "inputTokens": 1888,
+              "outputTokens": 40
+            },
+            "rawChoice": "expected"
+          }
+        },
+        {
+          "id": "case-abb41566970bb06e",
+          "workflow": "refund",
+          "variant": 27,
+          "fault": "double-refund",
+          "assessment": {
+            "choice": "expected",
+            "confidence": 0.89,
+            "probabilities": {
+              "expected": 0.93,
+              "unexpected": 0.07,
+              "uncertain": 0
+            },
+            "model": "jev-1.13.0",
+            "usage": {
+              "inputTokens": 1876,
+              "outputTokens": 40
+            },
+            "rawChoice": "expected"
+          }
+        },
+        {
+          "id": "case-361ab7b1bee3e792",
+          "workflow": "freeze",
+          "variant": 27,
+          "fault": null,
+          "assessment": {
+            "choice": "expected",
+            "confidence": 0.99,
+            "probabilities": {
+              "expected": 0.99,
+              "uncertain": 0,
+              "unexpected": 0.01
+            },
+            "model": "jev-1.13.0",
+            "usage": {
+              "inputTokens": 1810,
+              "outputTokens": 40
+            },
+            "rawChoice": "expected"
+          }
+        },
+        {
+          "id": "case-a97b94c221f09487",
+          "workflow": "freeze",
+          "variant": 27,
+          "fault": "freeze-all-cards",
+          "assessment": {
+            "choice": "unexpected",
+            "confidence": 0.99,
+            "probabilities": {
+              "expected": 0,
+              "unexpected": 1,
+              "uncertain": 0
+            },
+            "model": "jev-1.13.0",
+            "usage": {
+              "inputTokens": 1819,
+              "outputTokens": 40
+            },
+            "rawChoice": "unexpected"
+          }
+        },
+        {
+          "id": "case-f90f072c8cc011e8",
+          "workflow": "limit",
+          "variant": 27,
+          "fault": null,
+          "assessment": {
+            "choice": "expected",
+            "confidence": 0.94,
+            "probabilities": {
+              "expected": 0.96,
+              "unexpected": 0.04,
+              "uncertain": 0
+            },
+            "model": "jev-1.13.0",
+            "usage": {
+              "inputTokens": 1863,
+              "outputTokens": 40
+            },
+            "rawChoice": "expected"
+          }
+        },
+        {
+          "id": "case-31894ae433667aa0",
+          "workflow": "limit",
+          "variant": 27,
+          "fault": "rejection-fee",
+          "assessment": {
+            "choice": "unexpected",
+            "confidence": 0.99,
+            "probabilities": {
+              "unexpected": 0.99,
+              "expected": 0.01,
+              "uncertain": 0
+            },
+            "model": "jev-1.13.0",
+            "usage": {
+              "inputTokens": 1862,
+              "outputTokens": 40
+            },
+            "rawChoice": "unexpected"
+          }
+        }
+      ]
+    },
+    "candidateV6": {
+      "source": "artifacts/improvements/corroboration-v6-fresh-2026-09-17T08-14-43-176Z",
+      "sourceDigest": "12369195e5dcef87c61bf97bbe4741ec39621eacbc99ad50e3254f764658b61c",
+      "flows": 8,
+      "faulty": 4,
+      "detected": 3,
+      "healthyFalseAlarms": 0,
+      "healthyExpected": 3,
+      "healthyUncertain": 1,
+      "cases": [
+        {
+          "id": "case-ff893c26bdd612cb",
+          "workflow": "transfer",
+          "variant": 27,
+          "fault": null,
+          "assessment": {
+            "choice": "uncertain",
+            "confidence": 0.37,
+            "probabilities": {
+              "expected": 0.3,
+              "unexpected": 0.58,
+              "uncertain": 0.12
+            },
+            "rawChoice": "unexpected",
+            "checks": [
+              {
+                "requirement": "Transfer 91 credits from Primary to Aster, paying exactly 0 credits in fees",
+                "type": "choice",
+                "choice": "expected",
+                "confidence": 0.88,
+                "probabilities": {
+                  "uncertain": 0,
+                  "unexpected": 0.07,
+                  "expected": 0.93
+                }
+              },
+              {
+                "requirement": "Debit Primary once and credit the recipient once.",
+                "type": "choice",
+                "choice": "uncertain",
+                "confidence": 0.37,
+                "probabilities": {
+                  "expected": 0.3,
+                  "unexpected": 0.58,
+                  "uncertain": 0.12
+                }
+              }
+            ],
+            "initialChecks": [
+              {
+                "requirement": "Transfer 91 credits from Primary to Aster, paying exactly 0 credits in fees",
+                "type": "choice",
+                "choice": "expected",
+                "confidence": 0.88,
+                "probabilities": {
+                  "uncertain": 0,
+                  "unexpected": 0.07,
+                  "expected": 0.93
+                }
+              },
+              {
+                "requirement": "Debit Primary once and credit the recipient once.",
+                "type": "choice",
+                "choice": "uncertain",
+                "confidence": 0.46,
+                "probabilities": {
+                  "uncertain": 0.03,
+                  "unexpected": 0.33,
+                  "expected": 0.64
+                }
+              }
+            ],
+            "verificationChecks": [
+              {
+                "requirement": "Debit Primary once and credit the recipient once.",
+                "type": "choice",
+                "choice": "unexpected",
+                "confidence": 0.37,
+                "probabilities": {
+                  "expected": 0.3,
+                  "unexpected": 0.58,
+                  "uncertain": 0.12
+                }
+              }
+            ],
+            "model": "jev-1.13.0",
+            "usage": {
+              "inputTokens": 3379,
+              "outputTokens": 125
+            }
+          }
+        },
+        {
+          "id": "case-e77221d4b8bdc0c5",
+          "workflow": "transfer",
+          "variant": 27,
+          "fault": "duplicate-debit",
+          "assessment": {
+            "choice": "uncertain",
+            "confidence": 0.44,
+            "probabilities": {
+              "uncertain": 0.01,
+              "expected": 0.36,
+              "unexpected": 0.63
+            },
+            "rawChoice": "unexpected",
+            "checks": [
+              {
+                "requirement": "Transfer 91 credits from Primary to Aster, paying exactly 0 credits in fees",
+                "type": "choice",
+                "choice": "uncertain",
+                "confidence": 0.44,
+                "probabilities": {
+                  "uncertain": 0.01,
+                  "expected": 0.36,
+                  "unexpected": 0.63
+                }
+              },
+              {
+                "requirement": "Debit Primary once and credit the recipient once.",
+                "type": "choice",
+                "choice": "uncertain",
+                "confidence": 0.5,
+                "probabilities": {
+                  "uncertain": 0.01,
+                  "expected": 0.67,
+                  "unexpected": 0.32
+                }
+              }
+            ],
+            "initialChecks": [
+              {
+                "requirement": "Transfer 91 credits from Primary to Aster, paying exactly 0 credits in fees",
+                "type": "choice",
+                "choice": "uncertain",
+                "confidence": 0.3,
+                "probabilities": {
+                  "expected": 0.46,
+                  "unexpected": 0.54,
+                  "uncertain": 0
+                }
+              },
+              {
+                "requirement": "Debit Primary once and credit the recipient once.",
+                "type": "choice",
+                "choice": "uncertain",
+                "confidence": 0.25,
+                "probabilities": {
+                  "expected": 0.51,
+                  "unexpected": 0.49,
+                  "uncertain": 0
+                }
+              }
+            ],
+            "verificationChecks": [
+              {
+                "requirement": "Transfer 91 credits from Primary to Aster, paying exactly 0 credits in fees",
+                "type": "choice",
+                "choice": "unexpected",
+                "confidence": 0.44,
+                "probabilities": {
+                  "uncertain": 0.01,
+                  "expected": 0.36,
+                  "unexpected": 0.63
+                }
+              },
+              {
+                "requirement": "Debit Primary once and credit the recipient once.",
+                "type": "choice",
+                "choice": "expected",
+                "confidence": 0.5,
+                "probabilities": {
+                  "uncertain": 0.01,
+                  "expected": 0.67,
+                  "unexpected": 0.32
+                }
+              }
+            ],
+            "model": "jev-1.13.0",
+            "usage": {
+              "inputTokens": 3712,
+              "outputTokens": 162
+            }
+          }
+        },
+        {
+          "id": "case-d739740b695c5309",
+          "workflow": "refund",
+          "variant": 27,
+          "fault": null,
+          "assessment": {
+            "choice": "expected",
+            "confidence": 0.98,
+            "probabilities": {
+              "expected": 0.99,
+              "unexpected": 0.01,
+              "uncertain": 0
+            },
+            "rawChoice": "expected",
+            "checks": [
+              {
+                "requirement": "Refund payment P-227 for 91 credits to Primary",
+                "type": "choice",
+                "choice": "expected",
+                "confidence": 0.99,
+                "probabilities": {
+                  "expected": 0.99,
+                  "unexpected": 0.01,
+                  "uncertain": 0
+                }
+              },
+              {
+                "requirement": "Preserve its record marked refunded and restore the balance exactly once.",
+                "type": "choice",
+                "choice": "expected",
+                "confidence": 0.98,
+                "probabilities": {
+                  "expected": 0.99,
+                  "unexpected": 0.01,
+                  "uncertain": 0
+                }
+              }
+            ],
+            "model": "jev-1.13.0",
+            "usage": {
+              "inputTokens": 1906,
+              "outputTokens": 81
+            }
+          }
+        },
+        {
+          "id": "case-abb41566970bb06e",
+          "workflow": "refund",
+          "variant": 27,
+          "fault": "double-refund",
+          "assessment": {
+            "choice": "unexpected",
+            "confidence": 0.67,
+            "probabilities": {
+              "expected": 0.2,
+              "unexpected": 0.77,
+              "uncertain": 0.03
+            },
+            "rawChoice": "unexpected",
+            "checks": [
+              {
+                "requirement": "Refund payment P-227 for 91 credits to Primary",
+                "type": "choice",
+                "choice": "unexpected",
+                "confidence": 0.6,
+                "probabilities": {
+                  "expected": 0.26,
+                  "unexpected": 0.73,
+                  "uncertain": 0.01
+                }
+              },
+              {
+                "requirement": "Preserve its record marked refunded and restore the balance exactly once.",
+                "type": "choice",
+                "choice": "unexpected",
+                "confidence": 0.67,
+                "probabilities": {
+                  "expected": 0.2,
+                  "unexpected": 0.77,
+                  "uncertain": 0.03
+                }
+              }
+            ],
+            "initialChecks": [
+              {
+                "requirement": "Refund payment P-227 for 91 credits to Primary",
+                "type": "choice",
+                "choice": "uncertain",
+                "confidence": 0.34,
+                "probabilities": {
+                  "uncertain": 0,
+                  "unexpected": 0.56,
+                  "expected": 0.44
+                }
+              },
+              {
+                "requirement": "Preserve its record marked refunded and restore the balance exactly once.",
+                "type": "choice",
+                "choice": "uncertain",
+                "confidence": 0.58,
+                "probabilities": {
+                  "uncertain": 0,
+                  "unexpected": 0.72,
+                  "expected": 0.28
+                }
+              }
+            ],
+            "verificationChecks": [
+              {
+                "requirement": "Refund payment P-227 for 91 credits to Primary",
+                "type": "choice",
+                "choice": "unexpected",
+                "confidence": 0.6,
+                "probabilities": {
+                  "expected": 0.26,
+                  "unexpected": 0.73,
+                  "uncertain": 0.01
+                }
+              },
+              {
+                "requirement": "Preserve its record marked refunded and restore the balance exactly once.",
+                "type": "choice",
+                "choice": "unexpected",
+                "confidence": 0.67,
+                "probabilities": {
+                  "expected": 0.2,
+                  "unexpected": 0.77,
+                  "uncertain": 0.03
+                }
+              }
+            ],
+            "model": "jev-1.13.0",
+            "usage": {
+              "inputTokens": 3595,
+              "outputTokens": 162
+            }
+          }
+        },
+        {
+          "id": "case-361ab7b1bee3e792",
+          "workflow": "freeze",
+          "variant": 27,
+          "fault": null,
+          "assessment": {
+            "choice": "expected",
+            "confidence": 0.99,
+            "probabilities": {
+              "uncertain": 0,
+              "expected": 1,
+              "unexpected": 0
+            },
+            "rawChoice": "expected",
+            "checks": [
+              {
+                "requirement": "Freeze the Travel card",
+                "type": "choice",
+                "choice": "expected",
+                "confidence": 1,
+                "probabilities": {
+                  "uncertain": 0,
+                  "expected": 1,
+                  "unexpected": 0
+                }
+              },
+              {
+                "requirement": "Keep the other card active and leave account balances unchanged.",
+                "type": "choice",
+                "choice": "expected",
+                "confidence": 0.99,
+                "probabilities": {
+                  "uncertain": 0,
+                  "expected": 1,
+                  "unexpected": 0
+                }
+              }
+            ],
+            "model": "jev-1.13.0",
+            "usage": {
+              "inputTokens": 1708,
+              "outputTokens": 81
+            }
+          }
+        },
+        {
+          "id": "case-a97b94c221f09487",
+          "workflow": "freeze",
+          "variant": 27,
+          "fault": "freeze-all-cards",
+          "assessment": {
+            "choice": "unexpected",
+            "confidence": 1,
+            "probabilities": {
+              "unexpected": 1,
+              "expected": 0,
+              "uncertain": 0
+            },
+            "rawChoice": "unexpected",
+            "checks": [
+              {
+                "requirement": "Freeze the Travel card",
+                "type": "choice",
+                "choice": "expected",
+                "confidence": 0.86,
+                "probabilities": {
+                  "unexpected": 0.09,
+                  "expected": 0.91,
+                  "uncertain": 0
+                }
+              },
+              {
+                "requirement": "Keep the other card active and leave account balances unchanged.",
+                "type": "choice",
+                "choice": "unexpected",
+                "confidence": 1,
+                "probabilities": {
+                  "unexpected": 1,
+                  "expected": 0,
+                  "uncertain": 0
+                }
+              }
+            ],
+            "initialChecks": [
+              {
+                "requirement": "Freeze the Travel card",
+                "type": "choice",
+                "choice": "expected",
+                "confidence": 0.86,
+                "probabilities": {
+                  "unexpected": 0.09,
+                  "expected": 0.91,
+                  "uncertain": 0
+                }
+              },
+              {
+                "requirement": "Keep the other card active and leave account balances unchanged.",
+                "type": "choice",
+                "choice": "unexpected",
+                "confidence": 1,
+                "probabilities": {
+                  "unexpected": 1,
+                  "expected": 0,
+                  "uncertain": 0
+                }
+              }
+            ],
+            "verificationChecks": [
+              {
+                "requirement": "Keep the other card active and leave account balances unchanged.",
+                "type": "choice",
+                "choice": "unexpected",
+                "confidence": 1,
+                "probabilities": {
+                  "uncertain": 0,
+                  "unexpected": 1,
+                  "expected": 0
+                }
+              }
+            ],
+            "model": "jev-1.13.0",
+            "usage": {
+              "inputTokens": 3169,
+              "outputTokens": 125
+            }
+          }
+        },
+        {
+          "id": "case-f90f072c8cc011e8",
+          "workflow": "limit",
+          "variant": 27,
+          "fault": null,
+          "assessment": {
+            "choice": "expected",
+            "confidence": 0.98,
+            "probabilities": {
+              "unexpected": 0.01,
+              "uncertain": 0,
+              "expected": 0.99
+            },
+            "rawChoice": "expected",
+            "checks": [
+              {
+                "requirement": "Attempt a 91-credit transfer to Aster",
+                "type": "choice",
+                "choice": "expected",
+                "confidence": 0.98,
+                "probabilities": {
+                  "unexpected": 0.01,
+                  "uncertain": 0,
+                  "expected": 0.99
+                }
+              },
+              {
+                "requirement": "The per-transfer limit is 90; verify rejection with no balance change, fee, or ledger entry.",
+                "type": "choice",
+                "choice": "expected",
+                "confidence": 0.99,
+                "probabilities": {
+                  "unexpected": 0,
+                  "uncertain": 0,
+                  "expected": 1
+                }
+              }
+            ],
+            "model": "jev-1.13.0",
+            "usage": {
+              "inputTokens": 1729,
+              "outputTokens": 81
+            }
+          }
+        },
+        {
+          "id": "case-31894ae433667aa0",
+          "workflow": "limit",
+          "variant": 27,
+          "fault": "rejection-fee",
+          "assessment": {
+            "choice": "unexpected",
+            "confidence": 1,
+            "probabilities": {
+              "expected": 0,
+              "unexpected": 1,
+              "uncertain": 0
+            },
+            "rawChoice": "unexpected",
+            "checks": [
+              {
+                "requirement": "Attempt a 91-credit transfer to Aster",
+                "type": "choice",
+                "choice": "unexpected",
+                "confidence": 0.99,
+                "probabilities": {
+                  "uncertain": 0,
+                  "expected": 0,
+                  "unexpected": 1
+                }
+              },
+              {
+                "requirement": "The per-transfer limit is 90; verify rejection with no balance change, fee, or ledger entry.",
+                "type": "choice",
+                "choice": "unexpected",
+                "confidence": 1,
+                "probabilities": {
+                  "expected": 0,
+                  "unexpected": 1,
+                  "uncertain": 0
+                }
+              }
+            ],
+            "initialChecks": [
+              {
+                "requirement": "Attempt a 91-credit transfer to Aster",
+                "type": "choice",
+                "choice": "uncertain",
+                "confidence": 0.44,
+                "probabilities": {
+                  "expected": 0.37,
+                  "unexpected": 0.63,
+                  "uncertain": 0
+                }
+              },
+              {
+                "requirement": "The per-transfer limit is 90; verify rejection with no balance change, fee, or ledger entry.",
+                "type": "choice",
+                "choice": "unexpected",
+                "confidence": 1,
+                "probabilities": {
+                  "expected": 0,
+                  "unexpected": 1,
+                  "uncertain": 0
+                }
+              }
+            ],
+            "verificationChecks": [
+              {
+                "requirement": "Attempt a 91-credit transfer to Aster",
+                "type": "choice",
+                "choice": "unexpected",
+                "confidence": 0.99,
+                "probabilities": {
+                  "uncertain": 0,
+                  "expected": 0,
+                  "unexpected": 1
+                }
+              },
+              {
+                "requirement": "The per-transfer limit is 90; verify rejection with no balance change, fee, or ledger entry.",
+                "type": "choice",
+                "choice": "unexpected",
+                "confidence": 1,
+                "probabilities": {
+                  "uncertain": 0,
+                  "expected": 0,
+                  "unexpected": 1
+                }
+              }
+            ],
+            "model": "jev-1.13.0",
+            "usage": {
+              "inputTokens": 3430,
+              "outputTokens": 162
+            }
+          }
+        }
+      ]
+    }
+  }
+}

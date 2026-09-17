@@ -6,6 +6,7 @@ export function taskboardOracle(state: BoardState, input: Inputs): Check {
   const workflow = String(input.workflow)
   const task = state.tasks.find((t) => t.id === input.taskId)
   const other = state.tasks.find((t) => t.id === 'T-OTHER')
+  const another = state.tasks.find((t) => t.id === 'T-ANOTHER')
   const result = {
     assign: 'assigned',
     complete: 'completed',
@@ -17,14 +18,18 @@ export function taskboardOracle(state: BoardState, input: Inputs): Check {
     assertions: [
       {
         name: 'Requested operation has the correct result',
-        passed: state.operation === workflow && state.result === result,
+        passed:
+          (state.operation === workflow ||
+            (['assign', 'permission'].includes(workflow) &&
+              ['assign', 'permission'].includes(state.operation))) &&
+          state.result === result,
         expected: result ?? null,
         actual: state.result,
       },
       {
         name: 'Task records are retained',
-        passed: state.tasks.length === 2 && Boolean(task),
-        expected: 2,
+        passed: state.tasks.length === 3 && Boolean(task),
+        expected: 3,
         actual: state.tasks.length,
       },
       {
@@ -47,7 +52,10 @@ export function taskboardOracle(state: BoardState, input: Inputs): Check {
       },
       {
         name: 'Only the requested task is archived',
-        passed: task?.archived === (workflow === 'archive') && other?.archived === false,
+        passed:
+          task?.archived === (workflow === 'archive') &&
+          other?.archived === false &&
+          another?.archived === false,
       },
       {
         name: 'The unrelated task is untouched',
@@ -55,7 +63,13 @@ export function taskboardOracle(state: BoardState, input: Inputs): Check {
           other?.status === 'open' &&
           other.assignee === 'Other' &&
           other.title === 'Unrelated task' &&
-          other.priority === 'medium',
+          other.priority === 'medium' &&
+          other.project === input.project &&
+          another?.status === 'open' &&
+          another.assignee === 'Other' &&
+          another.title === 'Another unrelated task' &&
+          another.priority === 'medium' &&
+          another.project === input.project,
       },
       {
         name: 'One activity per permitted mutation and none for denied requests',

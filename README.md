@@ -54,7 +54,7 @@ Each flow has a separate browser context. Use `setup`, `cleanup`, and the suppli
 | `incomplete` | Abort, cancellation, step/repetition/time limit, or API budget prevented completion. |
 | `error`      | Configuration, provider, or runner infrastructure prevented evaluation.              |
 
-An `unexpected` model assessment creates a **candidate issue**, even when assertions pass. It does not prove a bug. Weak assessments become `uncertain`. Reports retain the probabilities and confidence.
+Model assessments check public requirements separately against observed changes. Candidate findings receive a separate evidence review; an accepted `unexpected` assessment creates a **candidate issue**, even when assertions pass. It does not prove a bug. Weak or conflicting assessments remain `uncertain`. Traces retain individual checks, review decisions, probabilities, and confidence.
 
 Every run saves `trace.json`, page snapshots, and masked screenshots. Suite output includes `report.html`, `summary.json`, `graph.json`, and `graph.dot`. Replay checks recorded states, action definitions, and assertions without asking Jev to choose again. State drift is reported instead of silently adapting the trace.
 
@@ -74,3 +74,7 @@ Adapted from the structure of [ultimate-project-template](https://github.com/Cor
 See [the project guide](docs/project-guide.md), [shop example](examples/shop/README.md), and [validation results](docs/validation.md).
 
 For larger evaluations, see the [benchmark mini-codebases](examples/README.md): reservations, a synthetic ledger, and a task board, each with 240 labeled flows and measured results in its README. `pnpm benchmark --mode reference` uses no API; `--mode jev` opts into bounded live evaluation.
+
+The [local improvement report](docs/improvements.md) separates historical full-suite results from paired comparisons of the revised policy, including false alarms, remaining misses, and token cost.
+
+The [complete 720-flow live rerun](docs/full-live-comparison.md) caught 313/360 planted faults through model judgments, up from 245/360, with healthy-case false alarms falling from 28 to zero. The report separates improved fault exposure and benchmark repairs from assessment quality.

@@ -43,6 +43,31 @@ describe('benchmark definitions', () => {
         ).toBe(scenario.fault ? 'failed' : 'passed')
       }
     })
+    it(`${benchmark.slug}: equivalent routes preserve outcomes and cannot bypass defects`, () => {
+      const aliases: Record<string, string> =
+        benchmark.slug === 'ledger'
+          ? { transfer: 'limit', limit: 'transfer' }
+          : benchmark.slug === 'taskboard'
+            ? { assign: 'permission', permission: 'assign' }
+            : { reserve: 'capacity', capacity: 'reserve' }
+      for (const scenario of benchmark.cases.filter((s) => s.variant < 2 && aliases[s.workflow])) {
+        let state = benchmark.initial(scenario)
+        let injected = false
+        const actions = [
+          `open-${aliases[scenario.workflow]}`,
+          ...scenario.referenceActions.slice(1),
+        ]
+        for (const action of actions) {
+          const transition = benchmark.reduce(state, action, scenario)
+          state = transition.state
+          injected ||= Boolean(transition.injected)
+        }
+        expect(injected).toBe(Boolean(scenario.fault))
+        expect(checkOutcome(benchmark.oracle(state, scenario.input))?.status).toBe(
+          scenario.fault ? 'failed' : 'passed',
+        )
+      }
+    })
     it(`${benchmark.slug}: isolated browser sessions execute and replay representative flows`, async () => {
       const host = await startBenchmark(benchmark)
       try {

@@ -87,3 +87,16 @@ it('does not credit a warning that preceded a later fault', () => {
   expect(row.modelDetected).toBe(false)
   expect(row.misplacedModelWarning).toBe(true)
 })
+it('does not count unfinished healthy flows as verified true negatives', () => {
+  const row = scoreCase(
+    reservations.cases.find((s) => !s.fault)!,
+    base,
+    { steps: 0, injectedAt: null },
+    reproduced,
+  )
+  const summary = summarize([row])
+  expect(summary.model.trueNegatives).toBe(0)
+  expect(summary.model.unclassifiedHealthy).toBe(1)
+  expect(summary.combined.trueNegatives).toBe(0)
+  expect(summary.healthyCompleted).toBe(0)
+})

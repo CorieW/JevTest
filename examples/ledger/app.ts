@@ -22,12 +22,20 @@ export interface LedgerState extends Screen {
   cards: { name: string; frozen: boolean }[]
   result: string
 }
-function labels(s: Scenario): [string, string, string] {
+function labels(s: Scenario, operation: string): [string, string, string] {
   const i = s.input
+  if (operation === 'refund')
+    return [
+      `Refund ${i.paymentId}: ${i.amount} credits to Primary`,
+      `Refund P-999: ${Number(i.amount) + 5} credits to Primary`,
+      'Refund P-998: 1 credit to Primary',
+    ]
+  if (operation === 'freeze')
+    return [`Freeze ${i.target} card`, 'Freeze Backup card', 'Freeze Spare card']
   return [
-    `${i.paymentId}; ${i.amount} credits to ${i.recipient}; ${i.target} card`,
-    `P-999; ${Number(i.amount) + 5} credits to Other; Backup card`,
-    `P-998; 1 credit to Other; Backup card`,
+    `Transfer ${i.amount} credits from Primary to ${i.recipient}`,
+    `Transfer ${Number(i.amount) + 5} credits from Primary to Other`,
+    'Transfer 1 credit from Primary to Other',
   ]
 }
 const menu = [
@@ -51,6 +59,7 @@ export const ledger = defineBenchmark<LedgerState>({
     cards: [
       { name: String(s.input.target), frozen: false },
       { name: 'Backup', frozen: false },
+      { name: 'Spare', frozen: false },
     ],
     result: 'pending',
   }),
@@ -74,9 +83,9 @@ export const ledger = defineBenchmark<LedgerState>({
       paymentStatus: state.paymentStatus,
       cards: state.cards,
       result: state.result,
-      selection: state.selected ? labels(s)[selectedIndex(state, s)]! : null,
+      selection: state.selected ? labels(s, state.operation)[selectedIndex(state, s)]! : null,
     },
-    buttons: buttons(state, menu, optionsFor(s, labels(s))),
+    buttons: buttons(state, menu, optionsFor(s, labels(s, state.operation))),
   }),
   reduce(state, action, s) {
     const moved = navigate(state, action)
@@ -84,7 +93,11 @@ export const ledger = defineBenchmark<LedgerState>({
     const next = structuredClone(state)
     next.screen = 'done'
     const choice = selectedIndex(state, s)
-    const fault = choice === 0 && state.operation === s.workflow ? s.fault : null
+    const sameOperation =
+      state.operation === s.workflow ||
+      (['transfer', 'limit'].includes(state.operation) &&
+        ['transfer', 'limit'].includes(s.workflow))
+    const fault = choice === 0 && sameOperation ? s.fault : null
     const amount =
       Number(s.input.amount) + (choice === 1 ? 5 : choice === 2 ? 1 - Number(s.input.amount) : 0)
     const fee = Number(s.input.fee)
@@ -119,7 +132,7 @@ export const ledger = defineBenchmark<LedgerState>({
       next.entries.push({ account: 'Primary', amount, kind: 'refund' })
     } else if (state.operation === 'freeze') {
       next.result = 'frozen'
-      const index = fault === 'wrong-card' || choice !== 0 ? 1 : 0
+      const index = fault === 'wrong-card' ? 1 : choice
       next.cards[index]!.frozen = true
       if (fault === 'freeze-all-cards')
         next.cards.forEach((c) => {

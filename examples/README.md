@@ -11,9 +11,9 @@ The benchmark mini-codebases are real loopback HTTP applications with isolated b
 
 The three larger benchmarks define **720 flows**, covering 360 parameterized tasks in matched healthy/faulty pairs. They are hundreds of fixture-specific flows, not hundreds of fundamentally different workflows. The shop remains a small getting-started example.
 
-## Measured results
+## Historical full-suite results
 
-One complete run on 2026-09-17 used `jev-1.13.0`, a five-step limit, and a 0.6 assessment-confidence threshold. Every application has 120 healthy and 120 faulty cases.
+One complete run at commit `783f5e2` on 2026-09-17 used `jev-1.13.0`, a five-step limit, and a 0.6 assessment-confidence threshold. Every application has 120 healthy and 120 faulty cases. These historical scores precede the local fixture repairs and policy changes.
 
 | Mini-codebase | Model detections / planted faults | Combined detections / planted faults | Model healthy false alarms | Combined healthy false alarms |
 | ------------- | --------------------------------- | ------------------------------------ | -------------------------- | ----------------------------- |
@@ -28,6 +28,8 @@ The known-route reference exercised all 360 planted faults and passed all 360 he
 The full live evaluation attempted **4,427 API requests** and reported **7,450,402 input/output tokens**. Conservative budget accounting charged **7,507,562 tokens**, including reservations for requests with unknown usage. Including the 77,311-token pilot and earlier 73,143-token shop test, cumulative charged usage was **7,658,016 tokens**, below the authorized 10,000,000 maximum. No failed full-run case was retried to improve these scores.
 
 ## Run the evaluations
+
+The [complete 720-flow live comparison](../docs/full-live-comparison.md) records the retained policy at **313/360 model detections and zero healthy false alarms**, versus **245/360 and 28 previously**. Combined detections rose from 266/360 to 357/360. Each example README includes both historical results and the full rerun. Most new detections involve faults previously unexercised; fixture repairs affect this comparison. With the user-authorized cumulative cap raised to 25,000,000, final conservative accounting totals **18,139,241 tokens**.
 
 ```sh
 # No model API calls: verify the apps and oracles with known routes.
@@ -71,4 +73,4 @@ Full JSON traces, HTML snapshots, replay records, graph exports, reports, and in
 
 These are finite synthetic apps with known requirements, four workflow families each, and one planted fault per faulty case. A single run on related fixtures is not a statistically independent sample of arbitrary software bugs. Strong combined results primarily validate the supplied assertions; model-only recall and false alarms must be read separately. Inspect misses and uncertainty before generalizing to a real application.
 
-The development run pins `TYPESAFE_MODEL=jev-1.13.0`, the version resolved by the pilot. Set that environment variable when comparing against these results; leaving it unset uses the moving `jev-latest` alias. No model thresholds or prompts were tuned between the pilot and the complete run.
+The development run pins `TYPESAFE_MODEL=jev-1.13.0`, the version resolved by the pilot. Set that environment variable when comparing against these results; leaving it unset uses the moving `jev-latest` alias. No model thresholds or prompts were tuned between the original pilot and complete run; later local experiments are documented separately.

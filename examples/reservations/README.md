@@ -22,7 +22,11 @@ Run manually: `pnpm benchmark:serve reservations`, then open `http://127.0.0.1:4
 
 Fault labels, reference actions, and grading outcomes stay server-side. Jev sees only opaque case IDs, the user goal, public input fixtures, the rendered UI and actual records. The bug is applied only when the intended mutation is exercised. Sessions and backend records are isolated per run; replay starts fresh.
 
-## What this run revealed
+## Historical full-suite run
+
+The following findings and generated results describe commit `783f5e2`, before the local fixture and policy corrections. The original result JSON remains unchanged. See the local comparison below for measurements on the corrected examples.
+
+### What this run revealed
 
 Jev detected every exercised defect. One extra-charge case stopped on a TypeSafe HTTP 503 before reaching the mutation; it remains a miss in end-to-end recall. Seven replay attempts reproduced the application states and assertions but exceeded the browser cleanup timeout. The incomplete API-error trace could not be replayed to an observable result. No failed case was retried to improve the score.
 
@@ -79,3 +83,48 @@ Faulty cases that abort or never exercise the mutation remain misses in end-to-e
 
 **Reproduction:** `pnpm benchmark --app reservations --mode both --write-results`. Requires `TYPESAFE_API_KEY` for the Jev phase. Full runs overwrite only the generated results section and sanitized result JSON; partial pilot runs cannot overwrite published results.
 <!-- evaluation:end -->
+
+## Local improvement evaluation
+
+Compared on corrected fixtures with pinned model `jev-1.13.0`. [Methods, changes, limitations, and spending](../../docs/improvements.md); [per-case comparison](results/improvements.json).
+
+| Measurement                                  | Original policy | Candidate                |
+| -------------------------------------------- | --------------- | ------------------------ |
+| Full flows, variants 22?23: model detections | 8/8 faults      | 8/8 faults (v5)          |
+| Same full flows: combined detections         | 8/8 faults      | 8/8 faults (v5)          |
+| Full-flow healthy false alarms               | 0/8             | 0/8                      |
+| Full traces completed and replayed           | 16/16           | 16/16                    |
+| Fresh terminal assessment, variant 27        | 4/4 faults      | 4/4 faults (retained v6) |
+| Fresh healthy false alarms                   | 0/4             | 0/4                      |
+| Fresh healthy uncertain judgments            | 1/4             | 0/4                      |
+
+The full-flow baseline reuses historical model answers after exact public-flow and replay equivalence checks; candidate answers and both fresh assessment arms use new API calls. The small-sample phase did not include another end-to-end run; the complete live rerun follows below. The fresh sample covers four fault types; it does not validate every planted type. These small parameterized comparisons do not establish real-world recall.
+
+<!-- full-live-comparison:start -->
+
+## Complete live rerun: all 240 flows
+
+This is the final v6 policy running every flow live, including action selection and intermediate assessments, followed by replay. Model: `jev-1.13.0`; started 2026-09-17T10:08:57.409Z; finished 2026-09-17T10:25:47.329Z. [Per-case results](results/full-live-v6.json).
+
+| Metric                                | Previous full live run | Current full live run |
+| ------------------------------------- | ---------------------- | --------------------- |
+| Flows evaluated                       | 240                    | 240                   |
+| Model detections / planted faults     | 119/120                | 119/120               |
+| Model recall                          | 99.2%                  | 99.2%                 |
+| Model healthy false alarms            | 0/120                  | 0/120                 |
+| Model precision                       | 100.0%                 | 100.0%                |
+| Combined detections / planted faults  | 119/120                | 119/120               |
+| Combined healthy false alarms         | 0/120                  | 0/120                 |
+| Faults exercised                      | 119/120                | 119/120               |
+| Healthy flows passed exact assertions | 120/120                | 120/120               |
+| Unclassified healthy flows (model)    | 0                      | 0                     |
+| Incomplete / infrastructure errors    | 0 / 1                  | 0 / 1                 |
+| Replayed traces                       | 232/240                | 239/240               |
+| Replay cleanup failures               | 7                      | 0                     |
+| Assessment / verification errors      | 0                      | 0                     |
+
+New model detections: 1; previous detections lost: 1. Of the new detections, 1 involve faults the previous run never exercised.
+
+The earlier 240-flow historical result remains unchanged above. This comparison includes both generic policy improvements and the documented example corrections, so the entire difference cannot be attributed to the model policy alone. Unfinished healthy flows are unclassified, not true negatives. Combined detections include exact assertions. See the [complete 720-flow analysis](../../docs/full-live-comparison.md) for methodology, token cost, and limitations.
+
+<!-- full-live-comparison:end -->

@@ -22,7 +22,11 @@ export function ledgerOracle(state: LedgerState, input: Inputs): Check {
     assertions: [
       {
         name: 'Requested workflow completed',
-        passed: state.operation === workflow && state.result === result,
+        passed:
+          (state.operation === workflow ||
+            (['transfer', 'limit'].includes(workflow) &&
+              ['transfer', 'limit'].includes(state.operation))) &&
+          state.result === result,
         expected: result ?? null,
         actual: state.result,
       },
@@ -57,7 +61,8 @@ export function ledgerOracle(state: LedgerState, input: Inputs): Check {
       {
         name: 'Only the requested card is frozen',
         passed:
-          state.cards[0]?.frozen === (workflow === 'freeze') && state.cards[1]?.frozen === false,
+          state.cards[0]?.frozen === (workflow === 'freeze') &&
+          state.cards.slice(1).every((c) => !c.frozen),
       },
     ],
   }

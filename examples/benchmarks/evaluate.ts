@@ -69,6 +69,9 @@ async function digest(benchmark: Benchmark) {
     'examples/benchmarks/host.ts',
     'examples/benchmarks/score.ts',
     'src/jev.ts',
+    'src/evidence.ts',
+    'src/types.ts',
+    'src/replay.ts',
     'src/runner.ts',
     'src/browser.ts',
   ]) {
@@ -91,6 +94,7 @@ export interface Evaluation {
     assessmentConfidence: number
     tokenBudget: number
     requestBudget: number
+    cleanupTimeoutMs?: number
   }
   usage: Usage
   summary: ReturnType<typeof summarize>
@@ -135,6 +139,10 @@ async function updateReadme(benchmark: Benchmark) {
         ],
         ['Combined recall', (e: Evaluation) => pct(e.summary.combined.recall)],
         ['Combined healthy false alarms', (e: Evaluation) => e.summary.combined.falsePositives],
+        [
+          'Unclassified healthy flows',
+          (e: Evaluation) => e.summary.combined.unclassifiedHealthy ?? 'Not recorded',
+        ],
         ['Combined precision', (e: Evaluation) => pct(e.summary.combined.precision)],
         [
           'Incomplete / infrastructure errors',
@@ -203,7 +211,7 @@ async function updateReadme(benchmark: Benchmark) {
           `- ${cases.length} unfinished case(s), ${reason}. Example: \`${cases[0]!.id}\`.`,
       ),
       '',
-      'Replay cleanup failures mean the browser did not close within the runner’s five-second cleanup allowance; they are retained as failed replays even when application states and assertions matched. These failures are separate from state divergence and detection misses. Parallel browser startup/shutdown on the evaluation host can affect this metric.',
+      `Replay cleanup failures mean the browser did not close within the configured ${live.configuration.cleanupTimeoutMs ?? 5000} ms allowance; they remain failed replays even when application states and assertions matched. These failures are separate from state divergence and detection misses. Parallel browser startup/shutdown can affect this metric.`,
       '',
       `Source/runner digest: \`${live.suiteDigest}\`. Environment: ${live.environment.os}/${live.environment.architecture}, Node ${live.environment.node}. Full local evidence: \`${live.evidence}\`.`,
       '',
@@ -300,6 +308,7 @@ for (const benchmark of chosen) {
           assessmentConfidence: 0.6,
           tokenBudget: maxTokens,
           requestBudget: budget.maxRequests,
+          cleanupTimeoutMs: 15_000,
         },
         usage,
         summary: summarize(scores),

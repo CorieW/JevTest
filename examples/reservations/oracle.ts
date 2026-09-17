@@ -24,7 +24,11 @@ export function reservationOracle(state: ReservationState, input: Inputs): Check
     assertions: [
       {
         name: 'Requested workflow and fixture were selected',
-        passed: state.operation === workflow && record?.room !== 'Birch',
+        passed:
+          (state.operation === workflow ||
+            (['reserve', 'capacity'].includes(workflow) &&
+              ['reserve', 'capacity'].includes(state.operation))) &&
+          record?.room !== 'Birch',
       },
       {
         name: 'Correct reservation outcome',

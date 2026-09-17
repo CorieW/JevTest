@@ -81,7 +81,11 @@ export const reservations = defineBenchmark<ReservationState>({
     const next = structuredClone(state)
     next.screen = 'done'
     const choice = selectedIndex(state, s)
-    const matches = choice === 0 && state.operation === s.workflow
+    const matches =
+      choice === 0 &&
+      (state.operation === s.workflow ||
+        (['reserve', 'capacity'].includes(state.operation) &&
+          ['reserve', 'capacity'].includes(s.workflow)))
     const fault = matches ? s.fault : null
     const guests = Number(s.input.guests) + choice
     const total = guests * Number(s.input.unitPrice)

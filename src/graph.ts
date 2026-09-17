@@ -50,11 +50,13 @@ export async function crawl(options: {
   maxStates?: number
   maxEdges?: number
   timeoutMs?: number
+  cleanupTimeoutMs?: number
 }): Promise<Graph & { stopped: string; errors: string[] }> {
   const maxDepth = positiveInteger(options.maxDepth ?? 5, 'maxDepth')
   const maxStates = positiveInteger(options.maxStates ?? 50, 'maxStates')
   const maxEdges = positiveInteger(options.maxEdges ?? 100, 'maxEdges')
   const signal = AbortSignal.timeout(positiveInteger(options.timeoutMs ?? 60_000, 'timeoutMs'))
+  const cleanupTimeout = positiveInteger(options.cleanupTimeoutMs ?? 15_000, 'cleanupTimeoutMs')
   const nodes = new Map<string, Graph['nodes'][number]>()
   const edges: Graph['edges'] = []
   const errors: string[] = []
@@ -73,7 +75,7 @@ export async function crawl(options: {
       session = await bounded(opening, signal)
       return await bounded(fn(session), signal)
     } finally {
-      if (session) await bounded(session.close(), AbortSignal.timeout(5000))
+      if (session) await bounded(session.close(), AbortSignal.timeout(cleanupTimeout))
     }
   }
   const add = (state: Observation) =>

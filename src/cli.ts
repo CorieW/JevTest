@@ -48,7 +48,13 @@ async function main() {
     const flow = project.flows.find((f) => f.id === trace.flow.id)
     if (!flow || JSON.stringify(flow) !== JSON.stringify(trace.flow))
       throw new Error('Trace flow does not match this config')
-    const result = await replay(trace, project.adapter, output, project.limits?.timeoutMs)
+    const result = await replay(
+      trace,
+      project.adapter,
+      output,
+      project.limits?.timeoutMs,
+      project.limits?.cleanupTimeoutMs,
+    )
     console.log(JSON.stringify(result, null, 2))
     process.exitCode = result.reproduced ? 0 : 1
     return
@@ -57,7 +63,11 @@ async function main() {
   if (!flows.length) throw new Error('No matching flows')
   if (command === 'discover') {
     if (flows.length !== 1) throw new Error('Discovery requires exactly one flow; use --flow')
-    const graph = await crawl({ adapter: project.adapter, flow: flows[0]! })
+    const graph = await crawl({
+      adapter: project.adapter,
+      flow: flows[0]!,
+      cleanupTimeoutMs: project.limits?.cleanupTimeoutMs,
+    })
     await mkdir(output, { recursive: true })
     await writeFile(resolve(output, 'graph.json'), JSON.stringify(graph, null, 2))
     await writeFile(resolve(output, 'graph.dot'), toDot(graph))

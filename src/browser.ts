@@ -63,14 +63,30 @@ export async function discoverActions(
           selector: selector(el),
           tag: el.tagName.toLowerCase(),
           type: el.getAttribute('type') ?? '',
-          label: (
-            el.getAttribute('aria-label') ??
-            el.textContent ??
-            el.getAttribute('name') ??
-            el.id
-          )
-            .trim()
-            .slice(0, 200),
+          label:
+            [
+              el
+                .getAttribute('aria-labelledby')
+                ?.split(/\s+/)
+                .map((id) => document.getElementById(id)?.textContent ?? '')
+                .join(' '),
+              el.getAttribute('aria-label'),
+              'labels' in el
+                ? Array.from((el as HTMLInputElement).labels ?? [])
+                    .map((label) => label.textContent)
+                    .join(' ')
+                : '',
+              el.textContent,
+              el.matches('input[type="button"], input[type="submit"], input[type="reset"]')
+                ? (el as HTMLInputElement).value
+                : '',
+              el.getAttribute('placeholder'),
+              el.getAttribute('name'),
+              el.id,
+            ]
+              .find((name) => name?.trim())
+              ?.trim()
+              .slice(0, 200) ?? '',
         }))
     })
   const actions: Action[] = []
@@ -108,20 +124,19 @@ export function createBrowserAdapter(options: BrowserOptions): Adapter {
       const allowed = new Set([origin, ...(options.allowedOrigins ?? [])])
       const browser = await chromium.launch({ headless: options.headless ?? true })
       let context: BrowserContext | undefined
-      let closed = false
-      const close = async () => {
-        if (closed) return
-        closed = true
-        try {
-          await context?.close()
-        } finally {
+      let closing: Promise<void> | undefined
+      const close = () =>
+        (closing ??= (async () => {
           try {
-            await browser.close()
+            await context?.close()
           } finally {
-            await options.cleanup?.(flow, runId)
+            try {
+              await browser.close()
+            } finally {
+              await options.cleanup?.(flow, runId)
+            }
           }
-        }
-      }
+        })())
       try {
         context = await browser.newContext({
           viewport: { width: 1280, height: 800 },
