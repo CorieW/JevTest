@@ -30,6 +30,8 @@ The live demo uses one shared 250,000-token admission budget and at most 80 requ
 
 ## Test your application
 
+For agent-assisted setup, copy [the JevTest skill directory](docs/skills/jevtest) into your agent's skill directory (for Codex, `$CODEX_HOME/skills/jevtest`, or `~/.codex/skills/jevtest` by default). Ask: `Use $jevtest to set up this codebase.` The skill guides the agent through application inspection, configuration, fixtures, exact checks, and offline validation.
+
 1. Run `pnpm setup:local` if you have not prepared the checkout yet.
 2. Run `pnpm dev init` to generate `jevtest/config.ts` and one unfinished flow.
 3. Edit `jevtest/flows.ts` and `jevtest/config.ts` with your URL, inputs, exact checks, and readiness condition.
