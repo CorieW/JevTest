@@ -1,7 +1,7 @@
 // Thirty synthetic account fixtures per operation, paired across healthy and faulty implementations.
 import { pairCases } from '../../../test/benchmarks/contracts.js'
 import { formCases } from '../../../test/benchmarks/forms.js'
-import { ledgerFields } from '../src/view.js'
+import { ledgerFields } from './fields.js'
 const cases = ['transfer', 'refund', 'freeze', 'limit'].flatMap((workflow) =>
   Array.from({ length: 30 }, (_, variant) => {
     const amount = 10 + variant * 3

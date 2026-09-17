@@ -1,13 +1,12 @@
 // Booking desk with a room catalogue, editable booking forms, reservations, and payment totals.
-import type { Field, Inputs, View } from '../../../test/benchmarks/contracts.js'
-import { controls, stats, table } from '../../../test/benchmarks/ui.js'
+import type { Field, Inputs, View } from './ui.js'
+import { controls, stats, table } from './ui.js'
 import type { ReservationData, ReservationPolicy } from './domain.js'
 export function reservationFields(operation: string, input: Inputs): Field[] {
   const time: Field = {
     name: 'slot',
     label: 'Date and time (YYYY-MM-DD HH:mm)',
     type: 'text',
-    fixture: 'slot',
   }
   if (['cancel', 'reschedule'].includes(operation))
     return [
@@ -15,7 +14,6 @@ export function reservationFields(operation: string, input: Inputs): Field[] {
         name: 'reservationId',
         label: 'Reservation',
         type: 'select',
-        fixture: 'reservationId',
         options: [String(input.reservationId), 'R-OTHER'].map((value) => ({ value, label: value })),
       },
       ...(operation === 'reschedule' ? [time] : []),
@@ -25,10 +23,9 @@ export function reservationFields(operation: string, input: Inputs): Field[] {
       name: 'room',
       label: 'Meeting room',
       type: 'select',
-      fixture: 'room',
       options: ['Cedar', 'Maple', 'Willow', 'Birch'].map((value) => ({ value, label: value })),
     },
-    { name: 'guests', label: 'Guests', type: 'number', fixture: 'guests' },
+    { name: 'guests', label: 'Guests', type: 'number' },
     time,
   ]
 }

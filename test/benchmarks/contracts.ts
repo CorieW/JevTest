@@ -107,18 +107,3 @@ export function asFlow(scenario: Scenario, baseUrl: string): Flow {
     successCriteria: scenario.criteria,
   }
 }
-export const initialScreen = (): Screen => ({
-  screen: 'home',
-  operation: '',
-  selected: '',
-  notice: '',
-})
-export function screenOnly(state: Screen): Screen {
-  return {
-    screen: state.screen,
-    operation: state.operation,
-    selected: state.selected,
-    notice: state.notice,
-    ...(state.form ? { form: state.form } : {}),
-  }
-}

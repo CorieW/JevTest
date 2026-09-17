@@ -1,6 +1,6 @@
 // Project workspace separates active work, retained archive records, and the activity feed.
-import type { Field, Inputs, View } from '../../../test/benchmarks/contracts.js'
-import { controls, escape, stats, table } from '../../../test/benchmarks/ui.js'
+import type { Field, Inputs, View } from './ui.js'
+import { controls, escape, stats, table } from './ui.js'
 import type { BoardData, BoardPolicy, Task } from './domain.js'
 export function taskboardFields(operation: string, input: Inputs): Field[] {
   const fields: Field[] = [
@@ -8,7 +8,6 @@ export function taskboardFields(operation: string, input: Inputs): Field[] {
       name: 'taskId',
       label: 'Task',
       type: 'select',
-      fixture: 'taskId',
       options: [String(input.taskId), 'T-OTHER', 'T-ANOTHER'].map((value) => ({
         value,
         label: value === input.taskId ? `${value} · ${input.title}` : value,
@@ -20,7 +19,6 @@ export function taskboardFields(operation: string, input: Inputs): Field[] {
       name: 'assignee',
       label: 'Assign to',
       type: 'select',
-      fixture: 'assignee',
       options: ['Ada', 'Lin', 'Sam', 'Other'].map((value) => ({ value, label: value })),
     })
   return fields

@@ -8,20 +8,24 @@ The three larger examples are small, runnable web applications. Each has typed d
 
 Each of `examples/reservations`, `examples/ledger`, and `examples/taskboard` has:
 
-| File                | Responsibility                                               |
-| ------------------- | ------------------------------------------------------------ |
-| `src/domain.ts`     | Domain records, typed commands, and input schemas            |
-| `src/service.ts`    | Business operations independent of the browser and evaluator |
-| `src/view.ts`       | Application-specific tables, forms, summaries, and receipts  |
-| `jevtest/config.ts` | JevTest configuration, seeded policy, and application wiring |
-| `jevtest/cases.ts`  | 240 paired user flows and their public input fixtures        |
-| `jevtest/oracle.ts` | Independent exact checks against observed saved records      |
+| File                  | Responsibility                                               |
+| --------------------- | ------------------------------------------------------------ |
+| `src/app.ts`          | Application state, menus, and form transitions               |
+| `src/ui.ts`           | Local form types, lifecycle, and HTML helpers                |
+| `src/domain.ts`       | Domain records, typed commands, and input schemas            |
+| `src/service.ts`      | Business operations independent of the browser and evaluator |
+| `src/view.ts`         | Application-specific tables, forms, summaries, and receipts  |
+| `jevtest/config.ts`   | JevTest wiring and fault selection                           |
+| `jevtest/fixtures.ts` | Evaluation seed records and policy                           |
+| `jevtest/fields.ts`   | Evaluator-only mappings from controls to test inputs         |
+| `jevtest/cases.ts`    | 240 paired user flows and their public input fixtures        |
+| `jevtest/oracle.ts`   | Independent exact checks against observed saved records      |
 
-Application code lives in `src/`. JevTest configuration, paired fixtures, and independent assertions live in `jevtest/` within the same example directory. Application source does not import these evaluation modules. The shared benchmark catalog loads each `jevtest/config.ts`; these definitions are used by `pnpm benchmark` and `pnpm benchmark:serve`.
+Application code lives in `src/`. JevTest configuration, paired fixtures, and independent assertions live in `jevtest/` within the same example directory. Application source imports only its own `src/` modules and external libraries. Menus, form transitions, view types, and HTML helpers belong to the application. Fixture mappings are added by the JevTest adapter; they are absent from application field definitions. The dependency direction is `jevtest/` to `src/`, enforced for all four examples by an architecture test. The shared benchmark catalog loads each `jevtest/config.ts`; these definitions are used by `pnpm benchmark` and `pnpm benchmark:serve`.
 
 The shop uses the same separation: `src/server.ts` and `src/serve.ts` implement and serve the application, while `jevtest/config.ts`, `jevtest/project.ts`, and `jevtest/run.ts` configure and evaluate its twelve flows. Its CLI config is passed with `--config examples/shop/jevtest/config.ts`.
 
-Services validate commands and return new state without modifying their input. Optional fault profiles deliberately introduce the benchmark defects. Fault selection and reference routes stay outside the model-visible flow and application responses. The browser presents records and form controls; it no longer prints a JSON dump or offers opaque numbered request choices.
+Each app can initialize, render, and process commands using public records and policy without loading the evaluation catalog. Services validate commands and return new state without modifying their input. Optional fault profiles deliberately introduce the benchmark defects. Fault selection and reference routes stay outside the model-visible flow and application responses. The browser presents records and form controls; it no longer prints a JSON dump or offers opaque numbered request choices.
 
 ### Reservation Desk
 
@@ -60,12 +64,12 @@ pnpm verify
 pnpm benchmark --mode reference
 ```
 
-Verification covers all 720 case/oracle combinations, representative Chromium flows and replay, malformed and stale HTTP requests, duplicate submissions, reload and server-restart persistence, keyboard form submission, permissions, balanced entries, refund guards, date validation, and retained records. The complete reference run exercises all 720 browser flows without model calls; each example README records its outcome.
+Verification enforces the application/evaluation dependency boundary for all four examples and covers all 720 case/oracle combinations, representative Chromium flows and replay, malformed and stale HTTP requests, duplicate submissions, reload and server-restart persistence, keyboard form submission, permissions, balanced entries, refund guards, date validation, and retained records. The complete reference run exercises all 720 browser flows without model calls; each example README records its outcome.
 
 The older Jev live results describe the pre-refactor fixtures. They remain available as historical evidence and must not be treated as scores for these changed applications. No live-model accuracy claim is made for this revision. A future comparison must run complete live suites against the same application revision and use an explicitly authorized token budget.
 
 ## Verified results for this revision
 
-On 2026-09-17, `pnpm verify` passed all 67 tests, secret scanning, formatting, lint, type checking, and the build. The complete 720-flow browser/reference evaluation passed all 360 healthy cases, exercised and detected all 360 planted faults through independent exact assertions, and reproduced all 720 traces. No cases were incomplete and no infrastructure errors or healthy false alarms occurred. API requests and charged tokens were both zero.
+On 2026-09-17, `pnpm verify` passed all 71 tests, secret scanning, formatting, lint, type checking, and the build. The complete 720-flow browser/reference evaluation passed all 360 healthy cases, exercised and detected all 360 planted faults through independent exact assertions, and reproduced all 720 traces. No cases were incomplete and no infrastructure errors or healthy false alarms occurred. API requests and charged tokens were both zero.
 
 Evaluation evidence retains every case outcome, action sequence, replay outcome, environment, and source digest under ignored `artifacts/benchmarks-*` directories. README files keep the aggregate results. Optional `--write-results` output in `examples/<app>/results/` is local and ignored by Git.

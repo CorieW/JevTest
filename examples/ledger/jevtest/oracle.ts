@@ -1,7 +1,7 @@
 // Exact wallet requirements are calculated independently from the service's mutation code.
 import type { Inputs } from '../../../test/benchmarks/contracts.js'
 import type { Check } from '../../../src/types.js'
-import type { LedgerState } from './config.js'
+import type { LedgerState } from '../src/app.js'
 export function ledgerOracle(state: LedgerState, input: Inputs): Check {
   const workflow = String(input.workflow)
   const amount = Number(input.amount)

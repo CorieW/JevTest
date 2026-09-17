@@ -38,12 +38,16 @@ This known-route run validates the application, fault reachability, independent 
 
 ## Code layout
 
-Application code lives in `src/`; JevTest configuration, fixtures, and correctness checks live separately in `jevtest/`.
+Application code lives in `src/` and has no dependency on JevTest. The `jevtest/` directory imports the application and supplies evaluation configuration, fixtures, and correctness checks.
 
+- [src/app.ts](src/app.ts): menus, public state, and form transitions.
+- [src/ui.ts](src/ui.ts): local form types, validation flow, and HTML helpers.
 - [src/domain.ts](src/domain.ts): typed records and command validation.
 - [src/service.ts](src/service.ts): business operations and deliberate fault profiles.
 - [src/view.ts](src/view.ts): forms and application-specific record tables.
-- [jevtest/config.ts](jevtest/config.ts): JevTest benchmark configuration, seeded state, and application wiring.
+- [jevtest/config.ts](jevtest/config.ts): JevTest wiring and deliberate-fault selection.
+- [jevtest/fixtures.ts](jevtest/fixtures.ts): evaluation seed records and policy.
+- [jevtest/fields.ts](jevtest/fields.ts): mappings from form controls to test inputs.
 - [jevtest/cases.ts](jevtest/cases.ts) and [jevtest/oracle.ts](jevtest/oracle.ts): paired fixtures and independent checks.
 
 See [application architecture](../../docs/example-architecture.md) for persistence, request handling, and evaluation details.

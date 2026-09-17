@@ -62,6 +62,10 @@ async function digest(benchmark: Benchmark) {
   const hash = createHash('sha256')
   for (const file of [
     `examples/${benchmark.slug}/jevtest/config.ts`,
+    `examples/${benchmark.slug}/jevtest/fields.ts`,
+    `examples/${benchmark.slug}/jevtest/fixtures.ts`,
+    `examples/${benchmark.slug}/src/app.ts`,
+    `examples/${benchmark.slug}/src/ui.ts`,
     `examples/${benchmark.slug}/jevtest/cases.ts`,
     `examples/${benchmark.slug}/jevtest/oracle.ts`,
     `examples/${benchmark.slug}/src/domain.ts`,

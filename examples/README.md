@@ -1,6 +1,6 @@
 # Example applications
 
-These applications exercise JevTest with realistic forms, business rules, and deliberate faults. Each has independent correctness checks. Shared serving and evaluation code lives in [test/benchmarks](../test/benchmarks/). Each example keeps application code in `src/` and JevTest configuration in `jevtest/`.
+These applications exercise JevTest with realistic forms, business rules, and deliberate faults. Each has independent correctness checks. Shared serving and evaluation code lives in [test/benchmarks](../test/benchmarks/). Each example keeps application code in `src/` and JevTest integration in `jevtest/`. Application source has no dependency on the evaluation code.
 
 | Application                       | Flows | Workflows                                       | Results                                                 |
 | --------------------------------- | ----- | ----------------------------------------------- | ------------------------------------------------------- |

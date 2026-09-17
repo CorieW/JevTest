@@ -111,6 +111,10 @@ try {
     ...chosen.flatMap((app) =>
       [
         'jevtest/config',
+        'jevtest/fields',
+        'jevtest/fixtures',
+        'src/app',
+        'src/ui',
         'jevtest/cases',
         'jevtest/oracle',
         'src/domain',

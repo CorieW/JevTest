@@ -1,7 +1,7 @@
 // Paired fixtures vary projects, tasks, assignees, priorities, and authorization boundaries.
 import { pairCases } from '../../../test/benchmarks/contracts.js'
 import { formCases } from '../../../test/benchmarks/forms.js'
-import { taskboardFields } from '../src/view.js'
+import { taskboardFields } from './fields.js'
 const cases = ['assign', 'complete', 'archive', 'permission'].flatMap((workflow) =>
   Array.from({ length: 30 }, (_, variant) => {
     const project = ['Atlas', 'Beacon', 'Cobalt'][variant % 3]!
