@@ -1,12 +1,12 @@
 // Independent requirements: this oracle has no access to the planted-fault label.
-import type { Inputs } from '../benchmarks/contracts.js'
+import type { Inputs } from '../../test/benchmarks/contracts.js'
 import type { Check } from '../../src/types.js'
 import type { ReservationState } from './app.js'
 
 export function reservationOracle(state: ReservationState, input: Inputs): Check {
   const workflow = String(input.workflow)
   const total = Number(input.guests) * Number(input.unitPrice)
-  const record = state.reservations[0]
+  const record = state.reservations.find((r) => r.id === input.reservationId)
   const expectedCount = workflow === 'capacity' ? 0 : 1
   const expectedStatus = workflow === 'cancel' ? 'cancelled' : 'confirmed'
   const expectedResult = {
@@ -23,6 +23,18 @@ export function reservationOracle(state: ReservationState, input: Inputs): Check
     complete: state.screen === 'done',
     assertions: [
       {
+        name: 'Unrelated reservation remains intact',
+        passed: state.reservations.some(
+          (r) =>
+            r.id === 'R-OTHER' &&
+            r.room === 'Birch' &&
+            r.slot === '2026-12-01 16:00' &&
+            r.guests === 2 &&
+            r.status === 'confirmed' &&
+            r.paid === 24,
+        ),
+      },
+      {
         name: 'Requested workflow and fixture were selected',
         passed:
           (state.operation === workflow ||
@@ -38,8 +50,8 @@ export function reservationOracle(state: ReservationState, input: Inputs): Check
       },
       {
         name: 'Exactly the expected reservations exist',
-        passed: state.reservations.length === expectedCount,
-        expected: expectedCount,
+        passed: state.reservations.length === expectedCount + 1,
+        expected: expectedCount + 1,
         actual: state.reservations.length,
       },
       {

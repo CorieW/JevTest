@@ -1,5 +1,5 @@
 // Task requirements examine persisted records, independent of response messages and fault flags.
-import type { Inputs } from '../benchmarks/contracts.js'
+import type { Inputs } from '../../test/benchmarks/contracts.js'
 import type { Check } from '../../src/types.js'
 import type { BoardState } from './app.js'
 export function taskboardOracle(state: BoardState, input: Inputs): Check {

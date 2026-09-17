@@ -1,124 +1,100 @@
-// Reservation application: faults live in mutations, while the client receives only observable state.
-import {
-  buttons,
-  defineBenchmark,
-  initialScreen,
-  navigate,
-  optionsFor,
-  screenOnly,
-  selectedIndex,
-} from '../benchmarks/contracts.js'
-import type { Screen, Scenario } from '../benchmarks/contracts.js'
+﻿// Booking application composition: HTTP forms call domain services; the oracle reads saved records.
+import { defineBenchmark, initialScreen, screenOnly } from '../../test/benchmarks/contracts.js'
+import type { Scenario, Screen } from '../../test/benchmarks/contracts.js'
+import { formButtons, formTransition, withFormValues } from '../../test/benchmarks/forms.js'
 import { reservationCases } from './cases.js'
 import { reservationOracle } from './oracle.js'
-
-export interface ReservationState extends Screen {
-  reservations: { id: string; room: string; slot: string; guests: number; status: string }[]
-  charged: number
-  refunded: number
-  result: string
-}
-function labels(s: Scenario): [string, string, string] {
-  const i = s.input
-  return [
-    `${i.reservationId}: ${i.room}, ${i.guests} guests, ${i.slot}`,
-    `${i.reservationId}: ${i.room}, ${Number(i.guests) + 1} guests, 2026-11-01 09:00`,
-    `Other reservation R-999: Birch, 2 guests, 2026-12-01 16:00`,
-  ]
-}
+import { parseReservationCommand } from './domain.js'
+import type { ReservationData, ReservationPolicy, ReservationFault } from './domain.js'
+import { executeReservation } from './service.js'
+import { reservationFields, renderReservations } from './view.js'
+export interface ReservationState extends Screen, ReservationData {}
 const menu = [
-  { id: 'open-reschedule', label: 'Change an existing reservation time' },
-  { id: 'open-reserve', label: 'Make a reservation' },
-  { id: 'open-capacity', label: 'Submit a capacity-limited reservation request' },
-  { id: 'open-cancel', label: 'Cancel and refund a reservation' },
+  { id: 'open-reserve', label: 'Book a room' },
+  { id: 'open-reschedule', label: 'Reschedule a booking' },
+  { id: 'open-cancel', label: 'Cancel a booking' },
+  { id: 'open-capacity', label: 'Check a group booking' },
 ]
+const policy = (s: Scenario): ReservationPolicy => ({
+  capacity: Number(s.input.capacity),
+  unitPrice: Number(s.input.unitPrice),
+  refundPercent: Number(s.input.refundPercent),
+  newId: String(s.input.reservationId),
+})
 export const reservations = defineBenchmark<ReservationState>({
   slug: 'reservations',
-  title: 'Reservation desk',
+  title: 'Reservation Desk',
   cases: reservationCases,
   initial(s) {
     const existing = ['cancel', 'reschedule'].includes(s.workflow)
+    const total = Number(s.input.guests) * Number(s.input.unitPrice)
     return {
       ...initialScreen(),
-      reservations: existing
-        ? [
-            {
-              id: String(s.input.reservationId),
-              room: String(s.input.room),
-              slot: '2026-09-30 09:00',
-              guests: Number(s.input.guests),
-              status: 'confirmed',
-            },
-          ]
-        : [],
-      charged: existing ? Number(s.input.guests) * Number(s.input.unitPrice) : 0,
+      reservations: [
+        ...(existing
+          ? [
+              {
+                id: String(s.input.reservationId),
+                room: String(s.input.room),
+                slot: '2026-09-30 09:00',
+                guests: Number(s.input.guests),
+                status: 'confirmed',
+                paid: total,
+              },
+            ]
+          : []),
+        {
+          id: 'R-OTHER',
+          room: 'Birch',
+          slot: '2026-12-01 16:00',
+          guests: 2,
+          status: 'confirmed',
+          paid: 24,
+        },
+      ],
+      charged: existing ? total : 0,
       refunded: 0,
       result: 'pending',
     }
   },
-  view(state, s) {
+  view: (state, s) => ({
+    title: 'Reservation Desk',
+    screen: screenOnly(state),
+    data: {
+      reservations: state.reservations.map((r) => ({ ...r })),
+      charged: state.charged,
+      refunded: state.refunded,
+      result: state.result,
+      policy: { ...policy(s) },
+    },
+    buttons: formButtons(state, menu),
+    fields: withFormValues(reservationFields(state.operation, s.input), state),
+  }),
+  reduce(state, action, s, values) {
+    const navigation = formTransition(state, action, values, parseReservationCommand)
+    if (navigation) return navigation
+    const command = parseReservationCommand(state.form ?? {}, state.operation)
+    const expected = s.workflow === 'capacity' ? 'reserve' : s.workflow
+    const target =
+      command.operation === 'reserve'
+        ? command.room === s.input.room &&
+          command.guests === s.input.guests &&
+          command.slot === s.input.slot
+        : command.reservationId === s.input.reservationId
+    const fault =
+      target && command.operation === expected ? (s.fault as ReservationFault | null) : null
+    const result = executeReservation(state, command, policy(s), fault)
     return {
-      title: 'Reservation desk',
-      screen: screenOnly(state),
-      data: {
-        rules: {
-          capacity: s.input.capacity!,
-          pricePerGuest: s.input.unitPrice!,
-          refundPercent: s.input.refundPercent!,
-        },
-        reservations: state.reservations,
-        chargedCredits: state.charged,
-        refundedCredits: state.refunded,
-        result: state.result,
-        selection: state.selected ? labels(s)[selectedIndex(state, s)]! : null,
+      state: {
+        ...state,
+        ...result,
+        screen: 'done',
+        notice: `Booking ${result.result}. The register and payment totals have been saved.`,
       },
-      buttons: buttons(state, menu, optionsFor(s, labels(s))),
+      injected: Boolean(fault),
     }
   },
-  reduce(state, action, s) {
-    const moved = navigate(state, action)
-    if (moved) return { state: moved }
-    const next = structuredClone(state)
-    next.screen = 'done'
-    const choice = selectedIndex(state, s)
-    const matches =
-      choice === 0 &&
-      (state.operation === s.workflow ||
-        (['reserve', 'capacity'].includes(state.operation) &&
-          ['reserve', 'capacity'].includes(s.workflow)))
-    const fault = matches ? s.fault : null
-    const guests = Number(s.input.guests) + choice
-    const total = guests * Number(s.input.unitPrice)
-    if (state.operation === 'reserve' || state.operation === 'capacity') {
-      const rejected = guests > Number(s.input.capacity) && fault !== 'overbooking'
-      next.result = rejected ? 'rejected' : 'confirmed'
-      if (!rejected) {
-        next.reservations.push({
-          id: String(s.input.reservationId),
-          room: choice === 2 ? 'Birch' : String(s.input.room),
-          slot: String(s.input.slot),
-          guests,
-          status: 'confirmed',
-        })
-        next.charged += total + (fault === 'wrong-price' ? 7 : 0)
-        if (fault === 'duplicate-reservation')
-          next.reservations.push({ ...next.reservations.at(-1)!, id: 'R-DUPLICATE' })
-      } else if (fault === 'charge-on-rejection') next.charged += total
-    } else if (state.operation === 'cancel') {
-      next.result = 'cancelled'
-      if (next.reservations[0] && fault !== 'uncancelled-record')
-        next.reservations[0].status = 'cancelled'
-      if (fault !== 'missing-refund')
-        next.refunded = Math.round((next.charged * Number(s.input.refundPercent)) / 100)
-    } else if (state.operation === 'reschedule') {
-      next.result = 'rescheduled'
-      if (next.reservations[0])
-        next.reservations[0].slot =
-          fault === 'wrong-slot' || choice !== 0 ? '2026-11-01 09:00' : String(s.input.slot)
-      if (fault === 'extra-charge') next.charged += 10
-    }
-    next.notice = `Request processed: ${next.result}. Review reservation and payment records.`
-    return { state: next, injected: Boolean(fault) }
-  },
+  restore: (view) => ({ ...view.screen, ...(view.data as unknown as ReservationData) }),
+  render: renderReservations,
   oracle: reservationOracle,
 })

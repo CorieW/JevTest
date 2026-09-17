@@ -1,8 +1,10 @@
 # Pocket ledger
 
+**Current implementation:** a layered application with validated commands, editable forms, domain services, persistent records, revision checks, and idempotent submissions. [Architecture and operation](../../docs/example-architecture.md). Live results farther down describe earlier fixture revisions; they are not measurements of this rewritten application.
+
 A synthetic wallet service with transfers, refunds, card controls, and per-transfer limits. Balances and transaction history are local fixture data; this code never handles real money or calls financial services.
 
-**240 user flows:** four workflows × 30 fixture combinations × healthy/faulty versions. The 120 matched task pairs vary amounts, starting balances, recipient accounts, fees, payment IDs, and cards. Each flow navigates a dashboard, selects one of three requests, and confirms a mutation.
+**240 user flows:** four workflows × 30 fixture combinations × healthy/faulty versions. The 120 matched task pairs vary amounts, starting balances, recipient accounts, fees, payment IDs, and cards. Each flow opens an operation, fills its actual recipient, amount, payment, or card controls, reviews the changes, and confirms.
 
 | Workflow                   | Healthy / faulty | Deliberate faults                   |
 | -------------------------- | ---------------- | ----------------------------------- |
@@ -13,14 +15,32 @@ A synthetic wallet service with transfers, refunds, card controls, and per-trans
 
 Each fault appears in 15 cases. Correct limit rejection is a successful flow. The oracle checks exact balances, permitted fees, ledger cardinality, refund state, and unaffected cards.
 
-- [app.ts](app.ts): wallet state and deliberately faulty mutation branches.
-- [cases.ts](cases.ts): fixture matrix and evaluator-only labels.
-- [oracle.ts](oracle.ts): independent arithmetic and integrity requirements.
-- [results](results/): sanitized per-case scores and aggregate metrics.
-
-Run manually: `pnpm benchmark:serve ledger`, then open `http://127.0.0.1:4320`. Run without API access: `pnpm benchmark --app ledger --mode reference`. The shared [benchmark host](../benchmarks/host.ts) handles isolated sessions and browser presentation; all domain logic lives here.
+Run manually: `pnpm benchmark:serve ledger`, then open `http://127.0.0.1:4320`. Run without API access: `pnpm benchmark --app ledger --mode reference`. The shared [benchmark host](../../test/benchmarks/host.ts) handles isolated sessions and browser presentation; all domain logic lives here.
 
 Jev receives public account state and task inputs, not the fault label or expected grader answer. Matched pairs have identical model-visible starting states. A private server journal records whether and when each defect was exercised.
+
+## Current reference evaluation
+
+The rewritten application was evaluated on **2026-09-17** using all 240 flows, a twelve-action limit, and three browser workers.
+
+| Metric                                                  | Result  |
+| ------------------------------------------------------- | ------- |
+| Healthy flows passed                                    | 120/120 |
+| Planted faults exercised and caught by exact assertions | 120/120 |
+| Healthy false alarms                                    | 0       |
+| Reproduced traces                                       | 240/240 |
+| Incomplete / infrastructure errors                      | 0 / 0   |
+| API requests / charged tokens                           | 0 / 0   |
+
+This known-route run validates the application, fault reachability, independent assertions, and replay. **Jev was not called; these are not model-accuracy scores.** [Sanitized per-case results](results/realistic-reference.json). Source/runner digest: `f50c996f622d166fd174641d7eb31b3de1bcfa0ec2d64fdc00db4d4a20db0b0e`.
+
+## Code layout
+
+- [domain.ts](domain.ts): typed records and command validation.
+- [service.ts](service.ts): business operations and deliberate fault profiles.
+- [view.ts](view.ts): forms and application-specific record tables.
+- [app.ts](app.ts): composition and benchmark integration.
+- [cases.ts](cases.ts) and [oracle.ts](oracle.ts): paired fixtures and independent checks.
 
 ## Historical full-suite run
 
@@ -106,9 +126,9 @@ Fresh v6 caught the double refund missed by the baseline, but both missed duplic
 
 <!-- full-live-comparison:start -->
 
-## Complete live rerun: all 240 flows
+## Historical live rerun: all 240 flows
 
-This is the final v6 policy running every flow live, including action selection and intermediate assessments, followed by replay. Model: `jev-1.13.0`; started 2026-09-17T10:08:57.409Z; finished 2026-09-17T10:25:47.329Z. [Per-case results](results/full-live-v6.json).
+This historical run used the v6 policy and the pre-refactor application, running every flow live, including action selection and intermediate assessments, followed by replay. Model: `jev-1.13.0`; started 2026-09-17T10:08:57.409Z; finished 2026-09-17T10:25:47.329Z. [Per-case results](results/full-live-v6.json).
 
 | Metric                                | Previous full live run | Current full live run |
 | ------------------------------------- | ---------------------- | --------------------- |

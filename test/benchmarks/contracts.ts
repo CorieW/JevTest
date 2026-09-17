@@ -13,12 +13,14 @@ export interface Scenario {
   goal: string
   criteria: string[]
   referenceActions: string[]
+  formValues?: Record<string, string>
 }
 export interface Screen {
   screen: 'home' | 'choose' | 'review' | 'done'
   operation: string
   selected: string
   notice: string
+  form?: Record<string, string>
 }
 export interface Button {
   id: string
@@ -29,6 +31,15 @@ export interface View {
   screen: Screen
   data: Json
   buttons: Button[]
+  fields?: Field[]
+}
+export interface Field {
+  name: string
+  label: string
+  type: 'text' | 'number' | 'select'
+  fixture: string
+  value?: string
+  options?: { value: string; label: string }[]
 }
 export interface Transition<S> {
   state: S
@@ -41,8 +52,15 @@ export interface Definition<S extends Screen> {
   cases: Scenario[]
   initial: (scenario: Scenario) => S
   view: (state: S, scenario: Scenario) => View
-  reduce: (state: S, action: string, scenario: Scenario) => Transition<S>
+  reduce: (
+    state: S,
+    action: string,
+    scenario: Scenario,
+    values?: Record<string, string>,
+  ) => Transition<S>
   oracle: (state: S, input: Inputs) => Check
+  restore: (view: View) => S
+  render: (view: View) => string
 }
 export type Benchmark = Definition<Screen>
 export function defineBenchmark<S extends Screen>(definition: Definition<S>): Benchmark {
@@ -50,7 +68,8 @@ export function defineBenchmark<S extends Screen>(definition: Definition<S>): Be
   return {
     ...definition,
     view: (state, scenario) => definition.view(state as S, scenario),
-    reduce: (state, action, scenario) => definition.reduce(state as S, action, scenario),
+    reduce: (state, action, scenario, values) =>
+      definition.reduce(state as S, action, scenario, values),
     oracle: (state, input) => definition.oracle(state as S, input),
   }
 }
@@ -76,7 +95,7 @@ export function pairCases(
     input,
     goal,
     criteria,
-    referenceActions: [`open-${workflow}`, `option-${variant % 3}`, 'confirm'],
+    referenceActions: [],
   }))
 }
 export function asFlow(scenario: Scenario, baseUrl: string): Flow {
@@ -94,45 +113,12 @@ export const initialScreen = (): Screen => ({
   selected: '',
   notice: '',
 })
-export function navigate<S extends Screen>(state: S, action: string): S | undefined {
-  if (action === 'back')
-    return { ...state, screen: 'home', operation: '', selected: '', notice: '' }
-  if (action.startsWith('open-'))
-    return { ...state, screen: 'choose', operation: action.slice(5), selected: '' }
-  if (action.startsWith('option-'))
-    return {
-      ...state,
-      screen: 'review',
-      selected: action,
-      notice: 'Review the selected request before confirming.',
-    }
-  return undefined
-}
-export function buttons(state: Screen, menu: Button[], options: Button[]): Button[] {
-  if (state.screen === 'home') return menu
-  if (state.screen === 'choose') return [...options, { id: 'back', label: 'Back to dashboard' }]
-  if (state.screen === 'review')
-    return [
-      { id: 'confirm', label: 'Confirm selected request' },
-      { id: 'back', label: 'Discard selection and return to dashboard' },
-    ]
-  return []
-}
-export function optionsFor(scenario: Scenario, labels: [string, string, string]): Button[] {
-  const offset = scenario.variant % 3
-  return Array.from({ length: 3 }, (_, i) => ({
-    id: `option-${i}`,
-    label: labels[(i - offset + 3) % 3]!,
-  }))
-}
-export function selectedIndex(state: Screen, scenario: Scenario): number {
-  return (Number(state.selected.slice(7)) - (scenario.variant % 3) + 3) % 3
-}
 export function screenOnly(state: Screen): Screen {
   return {
     screen: state.screen,
     operation: state.operation,
     selected: state.selected,
     notice: state.notice,
+    ...(state.form ? { form: state.form } : {}),
   }
 }

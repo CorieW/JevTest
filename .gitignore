@@ -3,6 +3,7 @@ dist/
 coverage/
 artifacts/
 output/
+.playwright-cli/
 .env*
 !.env.example
 *.log

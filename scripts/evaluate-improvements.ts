@@ -9,11 +9,11 @@ import { JevPolicy, TokenBudget } from '../src/jev.js'
 import { runFlow } from '../src/runner.js'
 import { replay } from '../src/replay.js'
 import type { Policy, RunResult, Usage } from '../src/types.js'
-import { benchmarks } from '../examples/benchmarks/catalog.js'
-import { startBenchmark } from '../examples/benchmarks/host.js'
-import { benchmarkProject, ReferencePolicy } from '../examples/benchmarks/adapter.js'
-import { asFlow } from '../examples/benchmarks/contracts.js'
-import { scoreCase, summarize } from '../examples/benchmarks/score.js'
+import { benchmarks } from '../test/benchmarks/catalog.js'
+import { startBenchmark } from '../test/benchmarks/host.js'
+import { benchmarkProject, ReferencePolicy } from '../test/benchmarks/adapter.js'
+import { asFlow } from '../test/benchmarks/contracts.js'
+import { scoreCase, summarize } from '../test/benchmarks/score.js'
 import { positiveInteger } from '../src/util.js'
 
 const { values } = parseArgs({
@@ -109,10 +109,15 @@ try {
   const sourceFiles = [
     ...['jev', 'evidence', 'runner', 'types', 'replay', 'browser'].map((name) => `src/${name}.ts`),
     ...chosen.flatMap((app) =>
-      ['app', 'cases', 'oracle'].map((name) => `examples/${app.slug}/${name}.ts`),
+      ['app', 'cases', 'oracle', 'domain', 'service', 'view'].map(
+        (name) => `examples/${app.slug}/${name}.ts`,
+      ),
     ),
-    'examples/benchmarks/adapter.ts',
-    'examples/benchmarks/score.ts',
+    'test/benchmarks/adapter.ts',
+    'test/benchmarks/score.ts',
+    ...['contracts', 'forms', 'host', 'ui', 'client', 'repository'].map(
+      (name) => `test/benchmarks/${name}.ts`,
+    ),
     ...(values['policy-module'] ? [values['policy-module']] : []),
     ...(values['runner-module'] ? [values['runner-module']] : []),
   ]
@@ -230,7 +235,7 @@ try {
                 flow: asFlow(scenario, host.url),
                 adapter: project.adapter,
                 policy: policy ?? new ReferencePolicy(benchmark),
-                limits: { maxSteps: 5, maxRepetitions: 2, concurrency: 2, timeoutMs: 90_000 },
+                limits: { maxSteps: 12, maxRepetitions: 2, concurrency: 2, timeoutMs: 90_000 },
                 outputDir: output,
                 signal: controller.signal,
               })
@@ -275,7 +280,7 @@ try {
         policy: values['policy-module'] ?? 'src/jev.ts',
         runner: values['runner-module'] ?? 'src/runner.ts',
         configuration: {
-          maxSteps: 5,
+          maxSteps: 12,
           maxRepetitions: 2,
           concurrency: 2,
           timeoutMs: 90_000,

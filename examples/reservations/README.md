@@ -1,6 +1,8 @@
 # Reservation desk
 
-A self-contained reservation service with guest capacity, per-guest pricing, cancellation refunds, and rescheduling. The application exposes a dashboard, three fixture choices per request, a review screen, and persisted reservation/payment records.
+**Current implementation:** a layered application with validated commands, editable forms, domain services, persistent records, revision checks, and idempotent submissions. [Architecture and operation](../../docs/example-architecture.md). Live results farther down describe earlier fixture revisions; they are not measurements of this rewritten application.
+
+A self-contained reservation service with guest capacity, per-guest pricing, cancellation refunds, and rescheduling. The application provides room selection, guest/date entry, review and edit screens, conflict detection, and persisted reservation/payment records.
 
 **240 user flows:** four workflows × 30 fixture combinations × healthy/faulty versions. That is 120 distinct parameterized tasks, each tested as a matched pair—not 240 unrelated workflow implementations. Guests, room, slot, price, and refund percentage vary across the fixtures.
 
@@ -13,14 +15,32 @@ A self-contained reservation service with guest capacity, per-guest pricing, can
 
 Each fault appears in 15 cases. Healthy rejection is a successful test outcome, not an application error.
 
-- [app.ts](app.ts): real application state transitions, observable records, and injected defects.
-- [cases.ts](cases.ts): deterministic fixture matrix and ground-truth labels.
-- [oracle.ts](oracle.ts): independent correctness requirements; receives no fault labels.
-- [results](results/): sanitized, per-case evaluation results.
-
-Run manually: `pnpm benchmark:serve reservations`, then open `http://127.0.0.1:4320`. Run without API access: `pnpm benchmark --app reservations --mode reference`. Shared HTTP/browser/evaluation infrastructure is in [benchmarks](../benchmarks/); no external services or database are required.
+Run manually: `pnpm benchmark:serve reservations`, then open `http://127.0.0.1:4320`. Run without API access: `pnpm benchmark --app reservations --mode reference`. Shared HTTP/browser/evaluation infrastructure is in [benchmarks](../../test/benchmarks/); state is stored in a local file repository, with no external services required.
 
 Fault labels, reference actions, and grading outcomes stay server-side. Jev sees only opaque case IDs, the user goal, public input fixtures, the rendered UI and actual records. The bug is applied only when the intended mutation is exercised. Sessions and backend records are isolated per run; replay starts fresh.
+
+## Current reference evaluation
+
+The rewritten application was evaluated on **2026-09-17** using all 240 flows, a twelve-action limit, and three browser workers.
+
+| Metric                                                  | Result  |
+| ------------------------------------------------------- | ------- |
+| Healthy flows passed                                    | 120/120 |
+| Planted faults exercised and caught by exact assertions | 120/120 |
+| Healthy false alarms                                    | 0       |
+| Reproduced traces                                       | 240/240 |
+| Incomplete / infrastructure errors                      | 0 / 0   |
+| API requests / charged tokens                           | 0 / 0   |
+
+This known-route run validates the application, fault reachability, independent assertions, and replay. **Jev was not called; these are not model-accuracy scores.** [Sanitized per-case results](results/realistic-reference.json). Source/runner digest: `94100a993516b5ffd05bd1f27466696d842a577930aaa9eb1324f02c395df3fa`.
+
+## Code layout
+
+- [domain.ts](domain.ts): typed records and command validation.
+- [service.ts](service.ts): business operations and deliberate fault profiles.
+- [view.ts](view.ts): forms and application-specific record tables.
+- [app.ts](app.ts): composition and benchmark integration.
+- [cases.ts](cases.ts) and [oracle.ts](oracle.ts): paired fixtures and independent checks.
 
 ## Historical full-suite run
 
@@ -102,9 +122,9 @@ The full-flow baseline reuses historical model answers after exact public-flow a
 
 <!-- full-live-comparison:start -->
 
-## Complete live rerun: all 240 flows
+## Historical live rerun: all 240 flows
 
-This is the final v6 policy running every flow live, including action selection and intermediate assessments, followed by replay. Model: `jev-1.13.0`; started 2026-09-17T10:08:57.409Z; finished 2026-09-17T10:25:47.329Z. [Per-case results](results/full-live-v6.json).
+This historical run used the v6 policy and the pre-refactor application, running every flow live, including action selection and intermediate assessments, followed by replay. Model: `jev-1.13.0`; started 2026-09-17T10:08:57.409Z; finished 2026-09-17T10:25:47.329Z. [Per-case results](results/full-live-v6.json).
 
 | Metric                                | Previous full live run | Current full live run |
 | ------------------------------------- | ---------------------- | --------------------- |

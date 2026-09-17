@@ -78,3 +78,5 @@ For larger evaluations, see the [benchmark mini-codebases](examples/README.md): 
 The [local improvement report](docs/improvements.md) separates historical full-suite results from paired comparisons of the revised policy, including false alarms, remaining misses, and token cost.
 
 The [complete 720-flow live rerun](docs/full-live-comparison.md) caught 313/360 planted faults through model judgments, up from 245/360, with healthy-case false alarms falling from 28 to zero. The report separates improved fault exposure and benchmark repairs from assessment quality.
+
+The larger examples now have validated forms, reusable domain services, local persistence, and duplicate/stale-request handling. See [example application architecture](docs/example-architecture.md). Shared evaluation tooling is under `test/benchmarks/`; `examples/` contains only the four applications covered by tests. Earlier live scores remain historical until these changed applications receive a new live evaluation.

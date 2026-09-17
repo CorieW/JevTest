@@ -1,15 +1,21 @@
 # Example applications and evaluations
 
-The benchmark mini-codebases are real loopback HTTP applications with isolated backend sessions and browser UIs. Each owns its state transitions, fixture matrix, and independent correctness oracle. They share only hosting, browser integration, replay, and evaluation infrastructure.
+The benchmark mini-codebases are real loopback HTTP applications with isolated backend sessions and browser UIs. Each owns its state transitions, fixture matrix, and independent correctness oracle. They share hosting, browser integration, replay, and evaluation infrastructure under `test/benchmarks/`, outside this folder. The [application architecture](../docs/example-architecture.md) explains their domain services, editable forms, persistence, and request handling.
 
-| Mini-codebase                     | User flows | Workflow families                               | Intentional faults        | Results                                             |
-| --------------------------------- | ---------- | ----------------------------------------------- | ------------------------- | --------------------------------------------------- |
-| [Reservation desk](reservations/) | 240        | Reserve, cancel, reschedule, capacity rejection | 8 types; 120 faulty cases | [README](reservations/README.md#evaluation-results) |
-| [Pocket ledger](ledger/)          | 240        | Transfer, refund, freeze, limit rejection       | 8 types; 120 faulty cases | [README](ledger/README.md#evaluation-results)       |
-| [Team task board](taskboard/)     | 240        | Assign, complete, archive, permission denial    | 8 types; 120 faulty cases | [README](taskboard/README.md#evaluation-results)    |
-| [Original shop demo](shop/)       | 12         | Compact checkout demonstration                  | 6 faults                  | [README](shop/README.md#evaluation-results)         |
+| Mini-codebase                     | User flows | Workflow families                               | Intentional faults        | Results                                                       |
+| --------------------------------- | ---------- | ----------------------------------------------- | ------------------------- | ------------------------------------------------------------- |
+| [Reservation desk](reservations/) | 240        | Reserve, cancel, reschedule, capacity rejection | 8 types; 120 faulty cases | [README](reservations/README.md#current-reference-evaluation) |
+| [Pocket ledger](ledger/)          | 240        | Transfer, refund, freeze, limit rejection       | 8 types; 120 faulty cases | [README](ledger/README.md#current-reference-evaluation)       |
+| [Team task board](taskboard/)     | 240        | Assign, complete, archive, permission denial    | 8 types; 120 faulty cases | [README](taskboard/README.md#current-reference-evaluation)    |
+| [Original shop demo](shop/)       | 12         | Compact checkout demonstration                  | 6 faults                  | [README](shop/README.md#evaluation-results)                   |
 
 The three larger benchmarks define **720 flows**, covering 360 parameterized tasks in matched healthy/faulty pairs. They are hundreds of fixture-specific flows, not hundreds of fundamentally different workflows. The shop remains a small getting-started example.
+
+The applications have since been rewritten into layered, persistent form-based services. The following live scores describe earlier fixtures; current reference-run results are reported separately in each application README.
+
+## Current reference results
+
+On 2026-09-17, the complete rewritten suite passed its reference evaluation: **360/360 healthy flows passed, 360/360 planted faults were exercised and detected by exact assertions, and 720/720 traces replayed**. There were no healthy false alarms, incomplete runs, or infrastructure errors. No API calls or tokens were used. These are known-route application/oracle checks, not live Jev accuracy measurements. Each application README links its current per-case results.
 
 ## Historical full-suite results
 
@@ -57,7 +63,7 @@ Each evaluation command shares one conservative token budget across its workers 
 ## How the measurement works
 
 1. Each case has an opaque ID, a public goal, public fixture inputs, a private fault label, and a private reference route. Healthy/faulty pairs start with identical public state.
-2. Jev chooses among four dashboard routes, three fixture requests, review/back actions, and the runner's abort option. Option order varies across fixtures. It never receives the fault label, reference route, private audit journal, or assertion results.
+2. Jev chooses among application operations, actual form inputs, record selections, review/edit/cancel controls, and the runner's abort option. It never receives the fault label, reference route, private audit journal, or assertion results. The action limit is twelve; reference paths use four to six actions.
 3. The server records the step at which the intended faulty mutation is actually exercised. A warning before that step cannot count as detecting that fault.
 4. Separate oracles check business requirements using observed records and the public fixture. A pass still requires deterministic assertions; model judgments cannot mark completion.
 5. Scoring distinguishes **model-only** findings from **combined** findings (model plus runner assertions). Healthy-case warnings are false alarms. Faulty cases without a credited finding—including aborted or unexposed cases—are misses in end-to-end recall.

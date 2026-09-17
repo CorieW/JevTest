@@ -1,56 +1,30 @@
-// Taskboard service with independent task records, activity, visible counts, and role checks.
-import {
-  buttons,
-  defineBenchmark,
-  initialScreen,
-  navigate,
-  optionsFor,
-  screenOnly,
-  selectedIndex,
-} from '../benchmarks/contracts.js'
-import type { Screen, Scenario } from '../benchmarks/contracts.js'
+﻿// Task workspace composition with a server-seeded principal and reusable domain services.
+import { defineBenchmark, initialScreen, screenOnly } from '../../test/benchmarks/contracts.js'
+import type { Screen, Scenario } from '../../test/benchmarks/contracts.js'
+import { formButtons, formTransition, withFormValues } from '../../test/benchmarks/forms.js'
 import { taskboardCases } from './cases.js'
 import { taskboardOracle } from './oracle.js'
-
-export type Task = {
-  id: string
-  project: string
-  title: string
-  assignee: string
-  priority: string
-  status: string
-  archived: boolean
-}
-export interface BoardState extends Screen {
-  tasks: Task[]
-  activities: string[]
-  completedCount: number
-  result: string
-}
-function labels(s: Scenario, operation: string): [string, string, string] {
-  if (operation === 'complete' || operation === 'archive') {
-    const verb = operation === 'complete' ? 'Complete' : 'Archive'
-    return [
-      `${verb} ${s.input.taskId} in ${s.input.project}`,
-      `${verb} T-OTHER in ${s.input.project}`,
-      `${verb} T-ANOTHER in ${s.input.project}`,
-    ]
-  }
-  return [
-    `${s.input.taskId} in ${s.input.project}, assign to ${s.input.assignee}`,
-    `T-OTHER in ${s.input.project}, assign to Other`,
-    `T-ANOTHER in ${s.input.project}, assign to Other`,
-  ]
-}
+import { parseBoardCommand } from './domain.js'
+import type { BoardData, BoardPolicy, BoardFault } from './domain.js'
+import { executeBoard } from './service.js'
+import { taskboardFields, renderTaskboard } from './view.js'
+export type { Task } from './domain.js'
+export interface BoardState extends Screen, BoardData {}
 const menu = [
+  { id: 'open-assign', label: 'Assign a task' },
+  { id: 'open-complete', label: 'Complete a task' },
   { id: 'open-archive', label: 'Archive a task' },
-  { id: 'open-permission', label: 'Request an assignment with the current role' },
-  { id: 'open-assign', label: 'Assign a task to a teammate' },
-  { id: 'open-complete', label: 'Mark a task complete' },
+  { id: 'open-permission', label: 'Request an assignment' },
 ]
+const policy = (s: Scenario): BoardPolicy => ({
+  project: String(s.input.project),
+  role: s.input.role === 'viewer' ? 'viewer' : 'editor',
+  actor: 'Morgan',
+  members: ['Ada', 'Lin', 'Sam', 'Other'],
+})
 export const taskboard = defineBenchmark<BoardState>({
   slug: 'taskboard',
-  title: 'Team task board',
+  title: 'Team Workspace',
   cases: taskboardCases,
   initial: (s) => ({
     ...initialScreen(),
@@ -88,57 +62,39 @@ export const taskboard = defineBenchmark<BoardState>({
     result: 'pending',
   }),
   view: (state, s) => ({
-    title: 'Team task board',
+    title: 'Team Workspace',
     screen: screenOnly(state),
     data: {
-      currentRole: s.input.role!,
-      permissionRule:
-        'Only editors may change tasks. Viewers may submit requests but must receive a denial.',
-      tasks: state.tasks,
-      activeTaskIds: state.tasks.filter((t) => !t.archived).map((t) => t.id),
+      tasks: state.tasks.map((t) => ({ ...t })),
+      activities: state.activities.map((a) => ({ ...a })),
       completedCount: state.completedCount,
-      activities: state.activities,
       result: state.result,
-      selection: state.selected ? labels(s, state.operation)[selectedIndex(state, s)]! : null,
+      policy: { ...policy(s) },
     },
-    buttons: buttons(state, menu, optionsFor(s, labels(s, state.operation))),
+    buttons: formButtons(state, menu),
+    fields: withFormValues(taskboardFields(state.operation, s.input), state),
   }),
-  reduce(state, action, s) {
-    const moved = navigate(state, action)
-    if (moved) return { state: moved }
-    const next = structuredClone(state)
-    next.screen = 'done'
-    const choice = selectedIndex(state, s)
-    const sameOperation =
-      state.operation === s.workflow ||
-      (['assign', 'permission'].includes(state.operation) &&
-        ['assign', 'permission'].includes(s.workflow))
-    const fault = choice === 0 && sameOperation ? s.fault : null
-    const task = next.tasks[choice]!
-    if (s.input.role === 'viewer' && fault !== 'permission-bypass') {
-      next.result = 'denied'
-      if (fault === 'denied-write') task.assignee = String(s.input.assignee)
-    } else {
-      if (state.operation === 'assign' || state.operation === 'permission') {
-        task.assignee =
-          fault === 'wrong-assignee' || choice !== 0 ? 'Other' : String(s.input.assignee)
-        if (fault === 'reset-priority') task.priority = 'unset'
-        next.result = 'assigned'
-      } else if (state.operation === 'complete') {
-        task.status = 'complete'
-        if (fault !== 'stale-count') next.completedCount++
-        next.result = 'completed'
-      } else if (state.operation === 'archive') {
-        if (fault === 'delete-instead') next.tasks = next.tasks.filter((t) => t.id !== task.id)
-        else if (fault === 'archive-other-task') next.tasks[1]!.archived = true
-        else task.archived = true
-        next.result = 'archived'
-      }
-      next.activities.push(`${next.result}: ${task.id}`)
-      if (fault === 'duplicate-activity') next.activities.push(`${next.result}: ${task.id}`)
+  reduce(state, action, s, values) {
+    const navigation = formTransition(state, action, values, parseBoardCommand)
+    if (navigation) return navigation
+    const command = parseBoardCommand(state.form ?? {}, state.operation)
+    const target =
+      command.taskId === s.input.taskId &&
+      (command.operation !== 'assign' || command.assignee === s.input.assignee)
+    const expected = s.workflow === 'permission' ? 'assign' : s.workflow
+    const fault = target && command.operation === expected ? (s.fault as BoardFault | null) : null
+    const result = executeBoard(state, command, policy(s), fault)
+    return {
+      state: {
+        ...state,
+        ...result,
+        screen: 'done',
+        notice: `Request ${result.result}. Task records and activity below show the saved outcome.`,
+      },
+      injected: Boolean(fault),
     }
-    next.notice = `Request processed: ${next.result}. Review task records and activity.`
-    return { state: next, injected: Boolean(fault) }
   },
+  restore: (view) => ({ ...view.screen, ...(view.data as unknown as BoardData) }),
+  render: renderTaskboard,
   oracle: taskboardOracle,
 })

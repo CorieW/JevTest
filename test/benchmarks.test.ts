@@ -1,9 +1,9 @@
 // Exhaustive oracle checks validate every fixture; browser checks sample all workflow/version combinations.
 import { describe, expect, it } from 'vitest'
-import { benchmarks } from '../examples/benchmarks/catalog.js'
-import { asFlow } from '../examples/benchmarks/contracts.js'
-import { benchmarkProject, ReferencePolicy } from '../examples/benchmarks/adapter.js'
-import { startBenchmark } from '../examples/benchmarks/host.js'
+import { benchmarks } from './benchmarks/catalog.js'
+import { asFlow } from './benchmarks/contracts.js'
+import { benchmarkProject, ReferencePolicy } from './benchmarks/adapter.js'
+import { startBenchmark } from './benchmarks/host.js'
 import { checkOutcome, runSuite } from '../src/runner.js'
 import { replay } from '../src/replay.js'
 
@@ -31,8 +31,9 @@ describe('benchmark definitions', () => {
         let state = benchmark.initial(scenario)
         let injected = false
         for (const action of scenario.referenceActions) {
+          if (/^(fill|select)-/.test(action)) continue
           expect(benchmark.view(state, scenario).buttons.some((b) => b.id === action)).toBe(true)
-          const result = benchmark.reduce(state, action, scenario)
+          const result = benchmark.reduce(state, action, scenario, scenario.formValues)
           state = result.state
           injected ||= Boolean(result.injected)
         }
@@ -58,7 +59,8 @@ describe('benchmark definitions', () => {
           ...scenario.referenceActions.slice(1),
         ]
         for (const action of actions) {
-          const transition = benchmark.reduce(state, action, scenario)
+          if (/^(fill|select)-/.test(action)) continue
+          const transition = benchmark.reduce(state, action, scenario, scenario.formValues)
           state = transition.state
           injected ||= Boolean(transition.injected)
         }
@@ -77,13 +79,15 @@ describe('benchmark definitions', () => {
           flows: sample.map((s) => asFlow(s, host.url)),
           adapter: project.adapter,
           policy: new ReferencePolicy(benchmark),
-          limits: { concurrency: 2, maxSteps: 4 },
+          limits: { concurrency: 2, maxSteps: 12 },
           outputDir: 'artifacts/benchmark-test',
         })
         for (const result of results) {
           const scenario = sample.find((s) => s.id === result.flow.id)!
           expect(result.status, result.reason).toBe(scenario.fault ? 'failed' : 'passed')
-          expect(host.audit(result.id).injectedAt).toBe(scenario.fault ? 3 : null)
+          expect(host.audit(result.id).injectedAt).toBe(
+            scenario.fault ? scenario.referenceActions.length : null,
+          )
           expect(JSON.stringify(result.flow)).not.toContain('referenceActions')
         }
         const reproduced = await replay(results[1]!, project.adapter, 'artifacts/benchmark-test')

@@ -1,5 +1,5 @@
 // Exact wallet requirements are calculated independently from the service's mutation code.
-import type { Inputs } from '../benchmarks/contracts.js'
+import type { Inputs } from '../../test/benchmarks/contracts.js'
 import type { Check } from '../../src/types.js'
 import type { LedgerState } from './app.js'
 export function ledgerOracle(state: LedgerState, input: Inputs): Check {
@@ -10,7 +10,7 @@ export function ledgerOracle(state: LedgerState, input: Inputs): Check {
     Number(input.sourceBalance) +
     (workflow === 'refund' ? amount : workflow === 'transfer' ? -amount - fee : 0)
   const recipient = workflow === 'transfer' ? 100 + amount : 100
-  const entries = ['transfer', 'refund'].includes(workflow) ? 1 : 0
+  const entries = workflow === 'transfer' ? 2 + Number(fee > 0) : workflow === 'refund' ? 2 : 0
   const result = {
     transfer: 'transferred',
     refund: 'refunded',
@@ -20,6 +20,10 @@ export function ledgerOracle(state: LedgerState, input: Inputs): Check {
   return {
     complete: state.screen === 'done',
     assertions: [
+      {
+        name: 'Journal debits and credits balance',
+        passed: state.entries.reduce((total, entry) => total + entry.amount, 0) === 0,
+      },
       {
         name: 'Requested workflow completed',
         passed:
