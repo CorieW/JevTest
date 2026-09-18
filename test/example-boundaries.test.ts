@@ -15,7 +15,7 @@ async function sourceFiles(directory: string): Promise<string[]> {
   return files.flat()
 }
 
-it.each(['ledger', 'reservations', 'taskboard', 'shop'])(
+it.each(['ledger', 'reservations', 'taskboard', 'shop', 'repairworks'])(
   '%s application source has no dependency on evaluation code',
   async (app) => {
     const root = resolve('examples', app, 'src')

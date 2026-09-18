@@ -1,6 +1,6 @@
 # Example applications
 
-These applications exercise JevTest with realistic forms, business rules, and deliberate faults. Each has independent correctness checks. Shared serving and evaluation code lives in [test/benchmarks](../test/benchmarks/). Each example keeps application code in `src/` and JevTest integration in `jevtest/`. Application source has no dependency on the evaluation code.
+The four evaluated applications below exercise JevTest with realistic forms, business rules, and deliberate faults. Each has independent correctness checks. Shared serving and evaluation code lives in [test/benchmarks](../test/benchmarks/). Each evaluated example keeps application code in `src/` and JevTest integration in `jevtest/`. Application source has no dependency on the evaluation code.
 
 | Application                       | Flows | Workflows                                       | Results                                                 |
 | --------------------------------- | ----- | ----------------------------------------------- | ------------------------------------------------------- |
@@ -12,6 +12,8 @@ These applications exercise JevTest with realistic forms, business rules, and de
 Each larger application has four workflows, thirty input combinations, and matched healthy/faulty cases: **720 flows across 360 paired tasks**, covering 24 fault types. They use validated forms, domain services, persisted records, and duplicate/stale-request handling. See [application architecture](../docs/example-architecture.md).
 
 ## Evaluation results
+
+[RepairWorks](repairworks/) is a separate, extensive repair-service application with deliberate minor and major defects. It has **not been integrated with or evaluated by JevTest** and is excluded from the benchmark commands and results below. Its README explains how to run it independently.
 
 The complete 720-flow reference run on **2026-09-17** produced:
 

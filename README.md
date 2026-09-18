@@ -110,7 +110,7 @@ Every run saves `trace.json`, page snapshots, and masked screenshots. Suite outp
 ```text
 src/             Runner, Jev policy, Playwright adapter, CLI, replay, reports, graph
 test/            Offline contract and real Chromium integration tests
-examples/        Four tested applications, fixtures, and evaluation results
+examples/        Four evaluated applications and a standalone RepairWorks application
 config/          TypeScript, ESLint, Prettier, Vitest configuration
 docs/            Architecture, integration constraints, validation, licensing intent
 .github/         CI, dependency updates, issue and PR templates
@@ -121,6 +121,8 @@ The project uses one root TypeScript package. Shared example hosting and evaluat
 ## Examples and validation
 
 The [example applications](examples/README.md) include reservations, a synthetic ledger, a task board, and a shop. The three larger applications define 720 flows with editable forms, business services, persistence, and request validation.
+
+[RepairWorks](examples/repairworks/) is a separate repair-service application with customers, quotes, inventory, purchasing, and billing. It contains deliberate defects and has not been integrated with or evaluated by JevTest.
 
 The current reference evaluation passed all 360 healthy cases, detected all 360 planted faults through exact checks, and reproduced all 720 traces without API calls. Live Jev accuracy has not been measured on these application versions. Run `pnpm benchmark --mode reference` to repeat the evaluation.
 
