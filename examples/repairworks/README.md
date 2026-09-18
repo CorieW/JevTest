@@ -1,5 +1,9 @@
 # RepairWorks
 
+[![Watch the RepairWorks application demo](media/demo.png)](media/demo.webm)
+
+[Watch the demo](media/demo.webm) — device intake, quotes, repairs, invoicing, payments, and the workshop workspace.
+
 A standalone repair-service workspace with two locations, three staff roles, persistent records, and deliberate business defects of varying severity. **JevTest has not been applied:** there is no JevTest config, flow suite, oracle, or evaluation result for this application, and it is excluded from the benchmark registry.
 
 ## Run

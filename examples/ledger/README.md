@@ -1,5 +1,9 @@
 # Pocket ledger
 
+[![Watch the Pocket Ledger application demo](media/demo.png)](media/demo.webm)
+
+[Watch the demo](media/demo.webm) — transfers, payment refunds, and card freezing.
+
 A synthetic wallet service with transfers, refunds, card controls, and per-transfer limits. Balances and transaction history are local fixture data; this code never handles real money or calls financial services.
 
 **240 user flows:** four workflows × 30 fixture combinations × healthy/faulty versions. The 120 matched task pairs vary amounts, starting balances, recipient accounts, fees, payment IDs, and cards. Each flow opens an operation, fills its actual recipient, amount, payment, or card controls, reviews the changes, and confirms.

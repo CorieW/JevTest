@@ -1,5 +1,9 @@
 # Team task board
 
+[![Watch the Team Workspace application demo](media/demo.png)](media/demo.webm)
+
+[Watch the demo](media/demo.webm) — task assignment, completion, archiving, and activity history.
+
 A project task service with assignments, completion, archiving, activity history, and viewer/editor permissions. It keeps a target task and two unrelated tasks so tests can detect collateral edits as well as the intended change.
 
 **240 user flows:** four workflows × 30 fixture combinations × healthy/faulty versions. The 120 matched task pairs vary project, task ID, title, assignee, and priority. Users choose a task from the project records and fill the relevant teammate or operation form before reviewing and saving.

@@ -1,5 +1,9 @@
 # Reservation desk
 
+[![Watch the Reservation Desk application demo](media/demo.png)](media/demo.webm)
+
+[Watch the demo](media/demo.webm) — room booking, rescheduling, and cancellation with a refund.
+
 A self-contained reservation service with guest capacity, per-guest pricing, cancellation refunds, and rescheduling. The application provides room selection, guest/date entry, review and edit screens, conflict detection, and persisted reservation/payment records.
 
 **240 user flows:** four workflows × 30 fixture combinations × healthy/faulty versions. That is 120 distinct parameterized tasks, each tested as a matched pair—not 240 unrelated workflow implementations. Guests, room, slot, price, and refund percentage vary across the fixtures.

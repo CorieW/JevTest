@@ -1,5 +1,9 @@
 # Controlled shop benchmark
 
+[![Watch the supply shop application demo](media/demo.png)](media/demo.webm)
+
+[Watch the demo](media/demo.webm) — adding notebooks to a cart, reviewing a discount, and placing an order.
+
 `pnpm demo` runs 12 flows using deterministic traversal. `pnpm demo:live` runs them with Jev and reads `.env.local`. Both commands start an ephemeral loopback server, close it afterward, replay every run, and write metrics and an HTML report under `artifacts/`.
 
 The six healthy flows cover different quantities, prices, and discounts. The six planted faults are an incorrect total, duplicate order, missing checkout control, wrong cart count, payment HTTP 500, and ignored discount. Orders live in each page's own memory, so parallel runs do not share data.
