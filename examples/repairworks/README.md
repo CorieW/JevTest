@@ -4,7 +4,7 @@
 
 [Watch the demo](media/demo.webm) — device intake, quotes, repairs, invoicing, payments, and the workshop workspace.
 
-A standalone repair-service workspace with two locations, three staff roles, persistent records, and deliberate business defects of varying severity. **JevTest has not been applied:** there is no JevTest config, flow suite, oracle, or evaluation result for this application, and it is excluded from the benchmark registry.
+A repair-service workspace with two locations, three staff roles, persistent records, and deliberate business defects of varying severity. Its JevTest integration covers recording a payment and retrying the same receipt. It remains separate from the 720-flow benchmark registry.
 
 ## Run
 
@@ -41,6 +41,16 @@ One completed repair can have one invoice. Amounts use integer pennies and 20% V
 
 ## Source and validation
 
-`src/` contains the domain model, seed data, persistence, business services, HTTP host, and server-rendered UI. It has no dependency on JevTest or the benchmark harness. Ordinary application checks live in [test/repairworks.test.ts](../../test/repairworks.test.ts); they verify basic operation and infrastructure, not JevTest detection accuracy.
+`src/` contains the domain model, seed data, persistence, business services, HTTP host, and server-rendered UI. It has no dependency on JevTest or the benchmark harness. JevTest configuration and flow definitions live separately in `jevtest/`. Ordinary application checks live in [test/repairworks.test.ts](../../test/repairworks.test.ts); integration and replay checks live in [test/repairworks-project.test.ts](../../test/repairworks-project.test.ts).
+
+## JevTest payment checks
+
+```sh
+pnpm dev run --config examples/repairworks/jevtest/config.ts --policy baseline --output artifacts/repairworks-checks
+```
+
+Each flow starts its own seeded database and loopback server on port 4334 (`JEVTEST_PORT` overrides the port), signs in as the demo manager, and closes the server afterward. Runs are sequential. Exact checks read persisted records and verify the receipt count, amount, balance, invoice prices, refunds, and unrelated data. The action space is limited to the payment form.
+
+The two-flow offline check produced **one pass and one intentional failure**: retrying a £10 receipt records two payments totalling £20. Both traces reproduced against fresh data. Exit code 1 reports that assertion failure. These results cover the two payment tasks only; they do not measure live Jev accuracy or coverage of the other deliberate defects. No model API calls were made.
 
 For maintainers preparing a later evaluation, the separate [defect catalogue](../../docs/repairworks-defects.md) lists 12 deliberate problems with reproduction steps. Keep that catalogue out of an evaluator's decision context.

@@ -122,7 +122,7 @@ The project uses one root TypeScript package. Shared example hosting and evaluat
 
 The [example applications](examples/README.md) include reservations, a synthetic ledger, a task board, and a shop. The three larger applications define 720 flows with editable forms, business services, persistence, and request validation.
 
-[RepairWorks](examples/repairworks/) is a separate repair-service application with customers, quotes, inventory, purchasing, and billing. It contains deliberate defects and has not been integrated with or evaluated by JevTest.
+[RepairWorks](examples/repairworks/) is a separate repair-service application with customers, quotes, inventory, purchasing, and billing. Its two JevTest payment flows cover a successful payment and a duplicate-receipt defect, with offline runs and replay.
 
 The current reference evaluation passed all 360 healthy cases, detected all 360 planted faults through exact checks, and reproduced all 720 traces without API calls. Live Jev accuracy has not been measured on these application versions. Run `pnpm benchmark --mode reference` to repeat the evaluation.
 

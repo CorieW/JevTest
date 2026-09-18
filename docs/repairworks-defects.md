@@ -1,6 +1,6 @@
 # RepairWorks deliberate defects
 
-Maintainer reference for the standalone [RepairWorks example](../examples/repairworks/README.md). These are known planted defects, not JevTest findings. No detection scores have been measured. Keep this document out of future model prompts, observations, fixtures, and public task goals.
+Maintainer reference for the [RepairWorks example](../examples/repairworks/README.md). These are planted defects; the payment integration exercises the duplicate-receipt defect, while the remaining catalogue has no JevTest coverage measurement. Keep this document out of model prompts, observations, fixtures, and public task goals.
 
 Use a fresh data file for independent reproductions. The initial account is selected on the local session page; Morgan is a manager, Alex an advisor, and Sam and Charlie are active technicians. Each successful command reloads the page, so repeated submissions below use a fresh form revision.
 
@@ -38,4 +38,4 @@ Use a fresh data file for independent reproductions. The initial account is sele
 
 The normal path, validation errors, stale-form protection, role restrictions unrelated to the planted permission defect, persistence, and rendered pages remain usable. The catalogue is a starting inventory of intentional defects, not a claim that no other problems exist. Ordinary application tests should preserve intended working behavior without treating these defects as correct requirements.
 
-This example has no benchmark registration, generated user-flow definitions, JevTest adapter, oracle, or scoring code. Any later evaluation must independently define expected outcomes from the business requirements and measure exposure before claiming detection.
+The separate `jevtest/` directory contains two payment flows with independent assertions against persisted records. They run and replay offline through the standard CLI. This example has no registration in the 720-flow benchmark or aggregate scoring code. Broader evaluations must independently define expected outcomes from business requirements and measure exposure before claiming detection.
