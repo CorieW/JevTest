@@ -1,0 +1,5 @@
+# Display metadata for the reusable JevTest integration skill.
+interface:
+  display_name: 'JevTest'
+  short_description: 'Set up and validate JevTest in a codebase'
+  default_prompt: 'Use $jevtest to set up this codebase with realistic flows, exact checks, and offline validation.'

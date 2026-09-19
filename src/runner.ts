@@ -7,13 +7,14 @@ import type { Adapter, Check, Flow, Limits, Policy, RunResult, Session } from '.
 import { BudgetExceeded } from './jev.js'
 import { errorMessage, positiveInteger, safeJson } from './util.js'
 
-export const defaultLimits: Limits = {
+export const defaultLimits: Required<Limits> = {
   maxSteps: 25,
   timeoutMs: 120_000,
   maxRepetitions: 3,
   concurrency: 2,
+  cleanupTimeoutMs: 15_000,
 }
-export function validateLimits(options: Partial<Limits> = {}): Limits {
+export function validateLimits(options: Partial<Limits> = {}): Required<Limits> {
   const limits = { ...defaultLimits, ...options }
   for (const [name, value] of Object.entries(limits)) positiveInteger(value, name)
   return limits
@@ -112,6 +113,10 @@ export async function runFlow(options: {
           throw new Error('Action IDs must be unique and cannot use __abort__')
         const history = result.steps.map((s) => ({
           action: s.action.id,
+          label: s.action.label,
+          beforeState: s.before.fingerprint,
+          afterState: s.after?.fingerprint,
+          changed: s.after ? s.before.fingerprint !== s.after.fingerprint : undefined,
           judgment: s.assessment?.choice ?? ('uncertain' as const),
         }))
         const selection = await bounded(
@@ -172,7 +177,14 @@ export async function runFlow(options: {
             result.issues.push({
               source: 'model',
               step: index,
-              message: `Unexpected result after ${action.label}; candidate requires review`,
+              message: `Unexpected result after ${action.label}; candidate requires review${
+                step.assessment.checks?.some((c) => c.choice === 'unexpected')
+                  ? `: ${step.assessment.checks
+                      .filter((c) => c.choice === 'unexpected')
+                      .map((c) => c.requirement)
+                      .join('; ')}`
+                  : ''
+              }`,
             })
         } catch (error) {
           if (!terminal) throw error
@@ -189,7 +201,7 @@ export async function runFlow(options: {
     clearTimeout(timer)
     if (session) {
       try {
-        await bounded(session.close(), AbortSignal.timeout(5000))
+        await bounded(session.close(), AbortSignal.timeout(limits.cleanupTimeoutMs))
       } catch (error) {
         result.reason += `; cleanup: ${errorMessage(error)}`
       }

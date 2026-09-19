@@ -56,11 +56,27 @@ export type Judgment = 'expected' | 'unexpected' | 'uncertain'
 export interface Assessment extends Choice {
   choice: Judgment
   rawChoice?: Judgment
+  checks?: {
+    requirement: string
+    choice: Judgment
+    confidence: number
+    probabilities: Record<string, number>
+  }[]
+  initialChecks?: Assessment['checks']
+  verificationChecks?: Assessment['checks']
+  reviewError?: string
 }
 export interface DecisionContext {
   flow: Flow
   current: Observation
-  history: { action: string; judgment: Judgment }[]
+  history: {
+    action: string
+    judgment: Judgment
+    label?: string
+    beforeState?: string
+    afterState?: string
+    changed?: boolean
+  }[]
 }
 export interface Policy {
   select(context: DecisionContext, signal: AbortSignal): Promise<Choice>
@@ -76,6 +92,7 @@ export interface Limits {
   timeoutMs: number
   maxRepetitions: number
   concurrency: number
+  cleanupTimeoutMs?: number
 }
 export interface Issue {
   source: 'assertion' | 'model' | 'execution'
@@ -121,5 +138,16 @@ export interface Project {
   adapter: Adapter
   limits?: Partial<Limits>
   outputDir?: string
+  webServer?: WebServer
+  dispose?: () => Promise<void>
+  setupIssues?: string[]
+}
+export type ProjectConfig = Project | (() => Project | Promise<Project>)
+export interface WebServer {
+  command: string
+  url: string
+  cwd?: string
+  timeoutMs?: number
+  reuseExistingServer?: boolean
 }
 export const ABORT = '__abort__'

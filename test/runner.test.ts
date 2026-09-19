@@ -73,6 +73,38 @@ async function run(
   return { ...f, result }
 }
 describe('runner', () => {
+  it('shows transition history without exposing exact assertion answers to selection', async () => {
+    const baseline = new TraversalPolicy()
+    const contexts: Parameters<Policy['select']>[0][] = []
+    const policy: Policy = {
+      select: async (context) => {
+        contexts.push(structuredClone(context))
+        return baseline.select(context)
+      },
+      assess: () => baseline.assess(),
+    }
+    const { result } = await run(
+      {
+        check: (n) => ({
+          complete: n >= 2,
+          assertions: [{ name: 'Private exact answer', passed: n === 2 }],
+        }),
+      },
+      policy,
+    )
+    expect(result.status).toBe('passed')
+    expect(contexts[1]?.history).toEqual([
+      {
+        action: 'advance',
+        label: 'Advance',
+        beforeState: '0',
+        afterState: '1',
+        changed: true,
+        judgment: 'uncertain',
+      },
+    ])
+    expect(JSON.stringify(contexts)).not.toContain('Private exact answer')
+  })
   it('only passes after deterministic checks and persists replay data', async () => {
     const { result, counts } = await run()
     expect(result.status).toBe('passed')

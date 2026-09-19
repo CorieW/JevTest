@@ -14,6 +14,7 @@ export async function writeReport(
   results: RunResult[],
   outputDir: string,
   usage?: Usage,
+  metadata?: { policy?: string; title?: string },
 ): Promise<string> {
   const directory = resolve(outputDir)
   await mkdir(directory, { recursive: true })
@@ -22,7 +23,7 @@ export async function writeReport(
   for (const result of results) totals[result.status]++
   await writeFile(
     resolve(directory, 'summary.json'),
-    JSON.stringify(safeJson({ totals, usage, runs: results }), null, 2),
+    JSON.stringify(safeJson({ totals, usage, metadata, runs: results }), null, 2),
   )
   await writeFile(resolve(directory, 'graph.json'), JSON.stringify(graph, null, 2))
   await writeFile(resolve(directory, 'graph.dot'), toDot(graph))
