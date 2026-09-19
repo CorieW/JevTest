@@ -115,9 +115,19 @@ pnpm dev view --output artifacts/run
 pnpm dev view artifacts/first-run artifacts/second-run --port 4310
 ```
 
-Open the printed local URL to search and filter flows, step through captured pages, compare expected and actual values, and inspect state changes and model assessments. The **Action graph** tab uses React Flow and Dagre to display states and labeled transitions with zoom, pan, a minimap, and links to recorded evidence. Filter to one flow to inspect its path; suites with more than 50 runs initially show the first flow.
+Open the printed local URL to search and filter flows, step through captured pages, compare expected and actual values, and inspect state changes and model assessments. The **Action graph** tab displays the application action space with **Show flow coverage** enabled by default. States and transitions show distinct flow counts; click either to inspect its flows and evidence. Turn coverage off to see the plain map. Individual flow pages highlight their route on the same layout, synchronized with the selected evidence frame.
+
+Generate the application map from every configured entry context, saving it alongside the runs:
+
+```sh
+pnpm dev discover --config jevtest/config.ts --output artifacts/run
+```
+
+Discovery explores available actions independently of flow success conditions and writes `action-space.json`. The viewer combines that map with recorded paths by exact state and action identity. `--flow id` restricts discovery to one context; `--max-depth`, `--max-states`, `--max-edges`, and `--discovery-timeout` control exploration. Limits, errors, and known untried actions remain visible. Without discovery data, the viewer explicitly labels the map as partial. Coverage applies to configured entry points, adapter actions, and fixture inputs, not every possible input or application state.
 
 The viewer reads JevTest `summary.json` directories, including older reports, and standalone `graph.json` directories from `jevtest discover`. Discovery views show recorded limits and errors, without assigning correctness outcomes. No project config or API key is needed. Refresh results to load updated files.
+
+Open a recorded flow to see its chronological screenshot path. Select any frame to inspect its evidence and checks, or play a timelapse at 0.5×–4× speed. The frame slider jumps to a specific step. Playback uses fixed intervals between saved captures, not the original action timings; missing captures remain marked, and repeated states remain separate visits.
 
 Use `--title "Checkout checks"` with `jevtest run` to give a suite a display name. Library callers can pass `{ title, policy }` as the fourth argument to `writeReport`.
 

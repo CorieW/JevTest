@@ -9,7 +9,7 @@ import { runSuite } from './runner.js'
 import { replay } from './replay.js'
 import { crawl, toDot } from './graph.js'
 import { writeReport } from './report.js'
-import { errorMessage, positiveInteger } from './util.js'
+import { errorMessage, positiveInteger, safeJson } from './util.js'
 import { findConfig, loadProject } from './config.js'
 import { initialize } from './init.js'
 import { startWebServer } from './server.js'
@@ -32,13 +32,17 @@ async function main() {
       trace: { type: 'string' },
       'max-tokens': { type: 'string', default: '250000' },
       'max-requests': { type: 'string', default: '100' },
+      'max-depth': { type: 'string', default: '5' },
+      'max-states': { type: 'string', default: '500' },
+      'max-edges': { type: 'string', default: '1000' },
+      'discovery-timeout': { type: 'string', default: '60000' },
       help: { type: 'boolean', short: 'h' },
     },
   })
   const command = positionals[0] ?? 'help'
   if (values.help || command === 'help') {
     console.log(
-      `JevTest — bounded exploratory testing\n\n  jevtest setup [--skip-browser]\n  jevtest init\n  jevtest doctor [--policy baseline] [--config path]\n  jevtest run --config project.config.ts [--policy jev|baseline] [--flow id]\n  jevtest discover --config project.config.ts --flow id\n  jevtest view [report-directory ...] [--output artifacts/run] [--port 4310]\n  jevtest replay --config project.config.ts --trace path/to/trace.json\n\nOptions: --env-file .env.local --output directory --title "Suite name" --max-tokens 250000 --max-requests 100\nNode 24 loads erasable TypeScript configs. Config files are trusted executable code.\nSet TYPESAFE_API_KEY for Jev. Replay, discovery and baseline do not use the API.`,
+      `JevTest — bounded exploratory testing\n\n  jevtest setup [--skip-browser]\n  jevtest init\n  jevtest doctor [--policy baseline] [--config path]\n  jevtest run --config project.config.ts [--policy jev|baseline] [--flow id]\n  jevtest discover --config project.config.ts [--flow id]\n  jevtest view [report-directory ...] [--output artifacts/run] [--port 4310]\n  jevtest replay --config project.config.ts --trace path/to/trace.json\n\nOptions: --env-file .env.local --output directory --title "Suite name" --max-tokens 250000 --max-requests 100\nDiscovery: --max-depth 5 --max-states 500 --max-edges 1000 --discovery-timeout 60000\nNode 24 loads erasable TypeScript configs. Config files are trusted executable code.\nSet TYPESAFE_API_KEY for Jev. Replay, discovery and baseline do not use the API.`,
     )
     return
   }
@@ -146,18 +150,23 @@ async function main() {
     const flows = values.flow ? project.flows.filter((f) => f.id === values.flow) : project.flows
     if (!flows.length) throw new Error('No matching flows')
     if (command === 'discover') {
-      if (flows.length !== 1) throw new Error('Discovery requires exactly one flow; use --flow')
       const graph = await crawl({
         adapter: project.adapter,
-        flow: flows[0]!,
+        flows,
+        maxDepth: positiveInteger(Number(values['max-depth']), 'max-depth'),
+        maxStates: positiveInteger(Number(values['max-states']), 'max-states'),
+        maxEdges: positiveInteger(Number(values['max-edges']), 'max-edges'),
+        timeoutMs: positiveInteger(Number(values['discovery-timeout']), 'discovery-timeout'),
         cleanupTimeoutMs: project.limits?.cleanupTimeoutMs,
         signal: controller.signal,
       })
       await mkdir(output, { recursive: true })
-      await writeFile(resolve(output, 'graph.json'), JSON.stringify(graph, null, 2))
-      await writeFile(resolve(output, 'graph.dot'), toDot(graph))
+      const serialized = JSON.stringify(safeJson(graph), null, 2)
+      await writeFile(resolve(output, 'graph.json'), serialized)
+      await writeFile(resolve(output, 'action-space.json'), serialized)
+      await writeFile(resolve(output, 'graph.dot'), toDot(safeJson(graph)))
       console.log(`${graph.nodes.length} states, ${graph.edges.length} edges. ${graph.stopped}`)
-      process.exitCode = graph.errors.length ? 1 : 0
+      process.exitCode = graph.complete ? 0 : 1
       return
     }
     if (!['jev', 'baseline'].includes(values.policy!))

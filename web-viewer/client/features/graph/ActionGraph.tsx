@@ -13,25 +13,26 @@ import { layoutGraph, type RoutedEdge } from './layout.js'
 import { ActionEdge } from './ActionEdge.js'
 import { navigate } from '../../lib/route.js'
 import { Badge } from '../../components/Badge.js'
+import { graphCoverage } from './coverage.js'
+import { FlowCoverage } from './FlowCoverage.js'
 const edgeTypes = { routed: ActionEdge }
-export function ActionGraph({ suite }: { suite: ViewerSuite }) {
-  const [runIndex, setRunIndex] = useState(suite.runs.length > 50 ? '0' : 'all')
-  const graph = useMemo(() => {
-    if (runIndex === 'all') return suite.graph
-    const edges = suite.graph.edges.filter((edge) =>
-      edge.references.some((reference) => reference.run === Number(runIndex)),
-    )
-    const endpoints = new Set(edges.flatMap((edge) => [edge.from, edge.to]))
-    return {
-      ...suite.graph,
-      edges,
-      nodes: suite.graph.nodes.filter(
-        (node) =>
-          endpoints.has(node.id) ||
-          node.references.some((reference) => reference.run === Number(runIndex)),
-      ),
-    }
-  }, [suite.graph, runIndex])
+export function ActionGraph({
+  suite,
+  flowIndex,
+  step,
+  onChoose,
+}: {
+  suite: ViewerSuite
+  flowIndex?: number
+  step?: number
+  onChoose?: (step: number) => void
+}) {
+  const [showCoverage, setShowCoverage] = useState(true)
+  const runIndex = flowIndex === undefined ? 'all' : String(flowIndex)
+  const coverageVisible = flowIndex === undefined && showCoverage
+  const graph = suite.graph
+  const coverage = useMemo(() => graphCoverage(graph, suite.runs), [graph, suite.runs])
+  const Heading = flowIndex === undefined ? 'h1' : 'h2'
   const { nodes, edges } = useMemo(() => layoutGraph(graph), [graph])
   const [selection, setSelection] = useState<{ kind: 'node' | 'edge'; index: number }>()
   const [query, setQuery] = useState('')
@@ -40,17 +41,72 @@ export function ActionGraph({ suite }: { suite: ViewerSuite }) {
     () =>
       nodes.map((node, index) => ({
         ...node,
+        data: {
+          ...node.data,
+          label: `${node.data.label}${coverageVisible ? `\n${coverage.nodes[index]} flows` : ''}`,
+        },
+        className:
+          runIndex !== 'all' &&
+          graph.nodes[index]!.references.some((reference) => reference.run === Number(runIndex))
+            ? 'flow-path-node'
+            : coverageVisible
+              ? coverage.nodes[index]
+                ? 'coverage-visited'
+                : 'coverage-unvisited'
+              : undefined,
+        style: {
+          ...node.style,
+          opacity:
+            runIndex === 'all' ||
+            graph.nodes[index]!.references.some((reference) => reference.run === Number(runIndex))
+              ? 1
+              : 0.3,
+          background: graph.nodes[index]!.references.some(
+            (reference) => reference.run === Number(runIndex) && reference.step === step,
+          )
+            ? '#bfeccc'
+            : coverageVisible && coverage.nodes[index]
+              ? '#def2e6'
+              : undefined,
+        },
         selected: selection?.kind === 'node' && selection.index === index,
       })),
-    [nodes, selection],
+    [nodes, selection, graph, runIndex, step, coverage, coverageVisible],
   )
   const highlightedEdges = useMemo(
     () =>
       edges.map((edge, index) => ({
         ...edge,
+        className:
+          runIndex !== 'all' &&
+          graph.edges[index]!.references.some((reference) => reference.run === Number(runIndex))
+            ? 'flow-path-edge'
+            : undefined,
+        style: {
+          opacity:
+            runIndex === 'all' ||
+            graph.edges[index]!.references.some((reference) => reference.run === Number(runIndex))
+              ? 1
+              : 0.15,
+        },
+        data: {
+          ...edge.data!,
+          flowCount: coverageVisible ? coverage.edges[index] : undefined,
+          pathSteps:
+            runIndex === 'all'
+              ? []
+              : graph.edges[index]!.references.filter(
+                  (reference) => reference.run === Number(runIndex),
+                ).map((reference) => reference.step),
+          current:
+            runIndex !== 'all' &&
+            graph.edges[index]!.references.some(
+              (reference) => reference.run === Number(runIndex) && reference.step === step,
+            ),
+        },
         selected: selection?.kind === 'edge' && selection.index === index,
       })),
-    [edges, selection],
+    [edges, selection, graph, runIndex, step, coverage, coverageVisible],
   )
   const chooseState = (index: number) => {
     setSelection({ kind: 'node', index })
@@ -67,8 +123,8 @@ export function ActionGraph({ suite }: { suite: ViewerSuite }) {
     <section className="action-graph">
       <div className="heading">
         <div>
-          <div className="eyebrow">Action graph</div>
-          <h1>{suite.name}</h1>
+          <div className="eyebrow">Application action space</div>
+          <Heading>{flowIndex === undefined ? suite.name : 'Flow path in the application'}</Heading>
           <p>
             {graph.nodes.length} observed states · {graph.edges.length} recorded transitions
           </p>
@@ -78,31 +134,55 @@ export function ActionGraph({ suite }: { suite: ViewerSuite }) {
         </a>
       </div>
       <p className="graph-note">
-        {graph.source === 'discovery'
-          ? 'Bounded discovery: only explored actions are shown. Discovery does not verify correctness.'
-          : 'Observed test paths: unexplored actions are not shown. States can be shared by runs with different outcomes.'}
+        {graph.source === 'runs'
+          ? 'Application discovery has not been loaded. This partial map contains recorded states and known untried actions. Run project discovery into this report directory to expand it.'
+          : graph.complete
+            ? 'All reachable actions exposed by the configured entry points and fixture inputs were explored. This does not prove coverage of other inputs, roles, or external states.'
+            : 'Partial application action space: discovery limits or errors may leave paths unexplored.'}
+        {runIndex !== 'all' &&
+          ' The full map stays in place; only this flow’s route is highlighted. Edge numbers show execution order.'}
+      </p>
+      <p className="graph-note">
+        {graph.frontier.length} known untried actions
+        {graph.entryPoints
+          ? ` · ${graph.entryPoints.opened}/${graph.entryPoints.requested} entry contexts opened`
+          : ''}
       </p>
       {graph.stopped && <p className="graph-note">Discovery stopped: {graph.stopped}</p>}
-      {suite.runs.length > 0 && (
-        <label className="graph-flow-filter">
-          Show paths from
-          <select
-            aria-label="Graph flow"
-            value={runIndex}
-            onChange={(event) => {
-              setRunIndex(event.target.value)
-              setSelection(undefined)
-              setQuery('')
-            }}
-          >
-            <option value="all">All recorded flows ({suite.runs.length})</option>
-            {suite.runs.map((run, index) => (
-              <option key={index} value={index}>
-                {run.flow.id} · {run.status}
-              </option>
-            ))}
-          </select>
-        </label>
+      {!!graph.unmatchedRunStates && (
+        <p className="graph-note">
+          {graph.unmatchedRunStates} recorded states were not in the saved discovery map. They are
+          included without guessing connections to other states.
+        </p>
+      )}
+      {flowIndex === undefined && (
+        <div className="graph-coverage">
+          <label className="coverage-toggle">
+            <input
+              type="checkbox"
+              checked={showCoverage}
+              onChange={(event) => setShowCoverage(event.target.checked)}
+            />
+            Show flow coverage
+          </label>
+          {showCoverage && (
+            <div aria-label="Application coverage">
+              <p>
+                {coverage.visitedStates}/{nodes.length} states visited ·{' '}
+                {coverage.traversedTransitions}/{edges.length} transitions traversed ·{' '}
+                {coverage.flows} distinct flows
+              </p>
+              <p>
+                Green: visited by flows. Dashed: no flow visits. Click a state or action to see its
+                flows.
+              </p>
+              <p>
+                Coverage measures recorded flow visits on the known map, regardless of test outcome.
+                Discovery alone does not count as flow coverage; unknown paths are not included.
+              </p>
+            </div>
+          )}
+        </div>
       )}
       {graph.errors.length > 0 && (
         <details className="error-box">
@@ -123,7 +203,6 @@ export function ActionGraph({ suite }: { suite: ViewerSuite }) {
         <div className="graph-grid">
           <div className="graph-canvas panel" aria-label="Interactive action graph">
             <ReactFlow<Node, RoutedEdge>
-              key={runIndex}
               nodes={highlightedNodes}
               edges={highlightedEdges}
               onInit={(instance) => {
@@ -137,16 +216,34 @@ export function ActionGraph({ suite }: { suite: ViewerSuite }) {
               fitView
               minZoom={0.05}
               maxZoom={2}
-              onNodeClick={(_, node) =>
-                setSelection({ kind: 'node', index: Number(node.id.slice(6)) })
-              }
-              onEdgeClick={(_, edge) =>
-                setSelection({ kind: 'edge', index: Number(edge.id.slice(7)) })
-              }
+              onNodeClick={(_, node) => {
+                const index = Number(node.id.slice(6))
+                setSelection({ kind: 'node', index })
+                const reference = graph.nodes[index]?.references.find(
+                  (item) => item.run === flowIndex,
+                )
+                if (reference) onChoose?.(reference.step)
+              }}
+              onEdgeClick={(_, edge) => {
+                const index = Number(edge.id.slice(7))
+                setSelection({ kind: 'edge', index })
+                const reference = graph.edges[index]?.references.find(
+                  (item) => item.run === flowIndex,
+                )
+                if (reference) onChoose?.(reference.step)
+              }}
             >
               <Background />
               <Controls showInteractive={false} />
-              <MiniMap pannable zoomable nodeColor="#b4d7c6" />
+              <MiniMap
+                pannable
+                zoomable
+                nodeColor={(node) =>
+                  node.className === 'flow-path-node' || node.className === 'coverage-visited'
+                    ? '#23774f'
+                    : '#cbd8d1'
+                }
+              />
             </ReactFlow>
           </div>
           <aside className="panel graph-inspector" aria-label="Graph inspector">
@@ -189,27 +286,42 @@ export function ActionGraph({ suite }: { suite: ViewerSuite }) {
                   <summary>Observed text</summary>
                   <pre>{selectedNode.text || 'No text recorded.'}</pre>
                 </details>
-                <h3>Recorded evidence</h3>
-                {selectedNode.references.length ? (
-                  selectedNode.references.map((reference) => {
-                    const run = suite.runs[reference.run]!
-                    return (
-                      <button
-                        className="graph-reference"
-                        key={`${reference.run}-${reference.step}`}
-                        onClick={() => navigate(suite.id, reference.run, reference.step)}
-                      >
-                        <span>
-                          {run.flow.id} · step {reference.step}
-                        </span>
-                        <Badge status={run.status} />
-                      </button>
-                    )
-                  })
+                {flowIndex === undefined ? (
+                  coverageVisible && (
+                    <FlowCoverage suite={suite} references={selectedNode.references} />
+                  )
                 ) : (
-                  <p>No run evidence is attached to this state.</p>
+                  <>
+                    <h3>Recorded evidence</h3>
+                    {selectedNode.references.length ? (
+                      selectedNode.references.map((reference) => {
+                        const run = suite.runs[reference.run]!
+                        return (
+                          <button
+                            className="graph-reference"
+                            key={`${reference.run}-${reference.step}`}
+                            onClick={() => navigate(suite.id, reference.run, reference.step)}
+                          >
+                            <span>
+                              {run.flow.id} · step {reference.step}
+                            </span>
+                            <Badge status={run.status} />
+                          </button>
+                        )
+                      })
+                    ) : (
+                      <p>No run evidence is attached to this state.</p>
+                    )}
+                  </>
                 )}
                 <h3>Outgoing actions</h3>
+                {graph.frontier
+                  .filter((item) => item.from === selectedNode.id)
+                  .map((item, index) => (
+                    <p className="graph-untried" key={index}>
+                      {item.action.label} <small>Unexplored · destination unknown</small>
+                    </p>
+                  ))}
                 {graph.edges.map((edge, index) =>
                   edge.from === selectedNode.id ? (
                     <button
@@ -231,6 +343,25 @@ export function ActionGraph({ suite }: { suite: ViewerSuite }) {
                 </code>
                 <p>From: {selectedEdge.from}</p>
                 <p>To: {selectedEdge.to}</p>
+                {flowIndex === undefined
+                  ? coverageVisible && (
+                      <FlowCoverage suite={suite} references={selectedEdge.references} />
+                    )
+                  : selectedEdge.references
+                      .filter((item) => runIndex === 'all' || item.run === Number(runIndex))
+                      .map((item) => (
+                        <button
+                          className="graph-reference"
+                          key={`${item.run}-${item.step}`}
+                          onClick={() =>
+                            onChoose && item.run === flowIndex
+                              ? onChoose(item.step)
+                              : navigate(suite.id, item.run, item.step)
+                          }
+                        >
+                          Open step {item.step} · {suite.runs[item.run]!.flow.id}
+                        </button>
+                      ))}
                 <button
                   onClick={() =>
                     chooseState(graph.nodes.findIndex((node) => node.id === selectedEdge.to))

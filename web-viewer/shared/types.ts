@@ -53,7 +53,11 @@ export interface ViewerSuite {
 }
 export type SuiteSummary = Omit<ViewerSuite, 'runs' | 'graph'> & { count: number }
 export interface ViewerGraph {
-  source: 'runs' | 'discovery'
+  source: 'runs' | 'discovery' | 'application'
+  complete?: boolean
+  unmatchedRunStates?: number
+  entryPoints?: { requested: number; opened: number }
+  frontier: { from: string; action: { id: string; label: string; kind: string }; flowId: string }[]
   stopped?: string
   errors: string[]
   nodes: { id: string; url: string; text: string; references: { run: number; step: number }[] }[]

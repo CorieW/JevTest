@@ -8,7 +8,7 @@ import type { ViewerSuite, EvidenceFile } from '../shared/types.js'
 import { summarySchema } from './schema.js'
 import { inside } from './paths.js'
 import type { EvidenceRegistry } from './evidence.js'
-import { observedGraph, readDiscovery } from './graph.js'
+import { applicationGraph, readDiscovery } from './graph.js'
 export async function readSuite(
   root: string,
   id: number,
@@ -45,7 +45,7 @@ export async function readSuite(
   const totals = { passed: 0, failed: 0, incomplete: 0, error: 0 }
   for (const run of runs) totals[run.status]++
   return safeJson({
-    graph: observedGraph(runs),
+    graph: await applicationGraph(root, runs),
     id,
     name: summary.metadata?.title ?? `${basename(dirname(root))} / ${basename(root)}`,
     totals,
@@ -55,7 +55,7 @@ export async function readSuite(
     downloads: {
       summary: expose(source),
       report: expose(resolve(root, 'report.html')),
-      graph: expose(resolve(root, 'graph.json')),
+      graph: `/api/suites/${id}/graph`,
     },
     runs: runs.map((run) => {
       const evidence = (files: string[]): EvidenceFile[] =>

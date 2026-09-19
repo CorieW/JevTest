@@ -64,12 +64,16 @@ export async function startViewer(options: { directories: string[]; port?: numbe
           ),
         )
       }
-      const match = /^\/api\/suites\/(\d+)$/.exec(url.pathname)
+      const match = /^\/api\/suites\/(\d+)(\/graph)?$/.exec(url.pathname)
       if (match && roots[Number(match[1])])
         return send(
           200,
           'application/json',
-          JSON.stringify(await loadSuite(roots[Number(match[1])]!, Number(match[1]))),
+          JSON.stringify(
+            await loadSuite(roots[Number(match[1])]!, Number(match[1])).then((suite) =>
+              match[2] ? suite.graph : suite,
+            ),
+          ),
         )
       const asset = assets.get(url.pathname)
       if (asset) {

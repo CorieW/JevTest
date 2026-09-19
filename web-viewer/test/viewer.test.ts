@@ -113,7 +113,66 @@ beforeAll(async () => {
       errors: ['A recorded discovery error'],
     }),
   )
-  viewer = await startViewer({ directories: [root, empty, paginated, discovery], port: 0 })
+  const story = join(root, 'story')
+  const storyRun = { ...runs[0]!, directory: join(story, 'run-0') }
+  await mkdir(storyRun.directory, { recursive: true })
+  await writeFile(
+    join(storyRun.directory, 'frame.png'),
+    Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aD1sAAAAASUVORK5CYII=',
+      'base64',
+    ),
+  )
+  await writeFile(join(storyRun.directory, 'initial.html'), '<h1>Snapshot frame</h1>')
+  storyRun.initialEvidence = ['frame.png']
+  storyRun.steps = Array.from({ length: 3 }, (_, index) => ({
+    ...runs[0]!.steps[0]!,
+    index: index + 1,
+    action: {
+      id: `action-${index}`,
+      label: index === 1 ? 'Return to earlier state' : `Recorded action ${index + 1}`,
+      kind: 'click' as const,
+    },
+    after: observed,
+    evidence: index === 0 ? ['initial.html'] : index === 1 ? ['missing.png'] : ['frame.png'],
+  }))
+  await writeReport([storyRun], story, undefined, { policy: 'jev', title: 'Timelapse fixture' })
+  const application = join(root, 'application')
+  await writeReport(runs, application, undefined, { policy: 'jev', title: 'Whole app' })
+  await writeFile(
+    join(application, 'action-space.json'),
+    JSON.stringify({
+      nodes: [
+        { id: 'before', url: observed.url, text: 'Start' },
+        { id: 'after', url: observed.url, text: 'Payment complete' },
+        { id: 'side', url: observed.url, text: 'Settings never visited by this flow' },
+      ],
+      edges: [
+        { from: 'before', to: 'after', action: runs[0]!.steps[0]!.action },
+        {
+          from: 'before',
+          to: 'side',
+          action: { id: 'settings', label: 'Open settings', kind: 'click' },
+        },
+        { from: 'side', to: 'before', action: { id: 'return', label: 'Return', kind: 'click' } },
+      ],
+      frontier: [
+        {
+          from: 'side',
+          action: { id: 'advanced', label: 'Advanced settings', kind: 'click' },
+          flowId: 'admin',
+        },
+      ],
+      complete: false,
+      entryPoints: { requested: 2, opened: 2 },
+      stopped: 'Depth limit reached',
+      errors: [],
+    }),
+  )
+  viewer = await startViewer({
+    directories: [root, empty, paginated, discovery, story, application],
+    port: 0,
+  })
   browser = await chromium.launch()
 })
 afterAll(async () => {
@@ -166,18 +225,18 @@ it('filters, searches, preserves outcome semantics, and steps through evidence s
     await page.getByText('This evidence file is missing.', { exact: false }).waitFor()
     await page.getByRole('button', { name: 'Page snapshot', exact: true }).click()
     await page
-      .frameLocator('iframe')
+      .frameLocator('#capture iframe')
       .getByRole('heading', { name: 'Captured application' })
       .waitFor()
     expect(await page.evaluate(() => 'viewerInjected' in window)).toBe(false)
-    expect(await page.locator('iframe').getAttribute('sandbox')).toBe('')
+    expect(await page.locator('#capture iframe').getAttribute('sandbox')).toBe('')
     await page.getByRole('button', { name: 'Next →', exact: true }).click()
     await page.locator('.check .failed').waitFor()
     expect(await page.getByRole('button', { name: 'Screenshot', exact: true }).isDisabled()).toBe(
       true,
     )
     await page
-      .frameLocator('iframe')
+      .frameLocator('#capture iframe')
       .getByRole('heading', { name: 'Captured application' })
       .waitFor()
     expect(await page.locator('.comparison').innerText()).toContain('10')
@@ -209,13 +268,60 @@ it('handles missing evidence, empty suites, playback, and narrow screens', async
     await page.goto(viewer.url + '/#suite=0&run=0&step=0')
     await page.getByText('This evidence file is missing.', { exact: false }).waitFor()
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
-    await page.getByRole('button', { name: 'Play captured steps', exact: true }).click()
+    await page.getByRole('button', { name: 'Play timelapse', exact: true }).click()
     await page.waitForURL(/step=1/)
-    await page.getByRole('button', { name: 'Play captured steps', exact: true }).waitFor()
+    await page.getByRole('button', { name: 'Play timelapse', exact: true }).waitFor()
     await page.goto(viewer.url + '/#suite=1')
     await page.getByRole('heading', { name: 'No matching flows' }).waitFor()
     expect(await page.locator('.stat b').allTextContents()).toEqual(['0', '0', '0', '0'])
     expect(await page.locator('main').innerText()).toContain('API usage not recorded')
+  } finally {
+    await page.close()
+  }
+})
+
+it('shows a chronological image path and synchronizes timelapse, speed, pause, and scrubbing', async () => {
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 } })
+  try {
+    await page.clock.install()
+    await page.goto(viewer.url + '/#suite=4&run=0&step=0')
+    await page.getByRole('heading', { name: 'Recorded action path', exact: true }).waitFor()
+    expect(await page.locator('.path-strip button').count()).toBe(4)
+    await page
+      .locator('.path-strip img')
+      .first()
+      .evaluate((image) => (image as HTMLImageElement).decode())
+    expect(await page.locator('.path-strip').innerText()).toContain('Page snapshot recorded')
+    await page.getByLabel('Timelapse speed').selectOption('2')
+    await page.getByRole('button', { name: 'Play timelapse', exact: true }).click()
+    await page.clock.fastForward(1200)
+    await page.waitForURL(/step=1/)
+    await page
+      .frameLocator('#capture iframe')
+      .getByRole('heading', { name: 'Snapshot frame' })
+      .waitFor()
+    expect(
+      await page.locator('.path-strip button[aria-current="step"]').getAttribute('data-step'),
+    ).toBe('1')
+    await page.getByRole('button', { name: 'Pause timelapse', exact: true }).click()
+    await page.clock.fastForward(5000)
+    expect(new URL(page.url()).hash).toContain('step=1')
+    await page.getByRole('slider', { name: 'Timelapse frame' }).fill('2')
+    await page.waitForURL(/step=2/)
+    await page.getByText('Screenshot unavailable', { exact: true }).waitFor()
+    await page.getByRole('button', { name: 'View frame 3: Recorded action 3', exact: true }).click()
+    await page.waitForURL(/step=3/)
+    await page.getByRole('button', { name: 'Screenshot', exact: true }).click()
+    await page.locator('#capture img').evaluate((image) => (image as HTMLImageElement).decode())
+    await page.getByRole('button', { name: 'Play timelapse', exact: true }).click()
+    await page.waitForURL(/step=0/)
+    await page.getByRole('slider', { name: 'Timelapse frame' }).fill('2')
+    await page.clock.fastForward(5000)
+    expect(new URL(page.url()).hash).toContain('step=2')
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+    await page.reload()
+    await page.getByRole('slider', { name: 'Timelapse frame' }).waitFor()
+    expect(await page.getByRole('slider', { name: 'Timelapse frame' }).inputValue()).toBe('2')
   } finally {
     await page.close()
   }
@@ -226,7 +332,7 @@ it('cancels playback when navigating away from a run', async () => {
   try {
     await page.clock.install()
     await page.goto(viewer.url + '/#suite=0&run=0&step=0')
-    await page.getByRole('button', { name: 'Play captured steps', exact: true }).click()
+    await page.getByRole('button', { name: 'Play timelapse', exact: true }).click()
     await page.locator('[data-suite="1"]').click()
     await page.getByRole('heading', { name: 'No matching flows' }).waitFor()
     await page.clock.fastForward(5000)
@@ -275,6 +381,7 @@ it('renders the observed graph, supports zoom, and opens exact recorded evidence
     )
     await page.getByLabel('Select observed state', { exact: true }).selectOption('1')
     expect(await page.locator('.react-flow__node.selected').count()).toBe(1)
+    await page.getByText('flow-failed', { exact: true }).click()
     await page.getByRole('button', { name: 'flow-failed · step 1 failed', exact: false }).click()
     await page.locator('.check .failed').waitFor()
     expect(new URL(page.url()).hash).toContain('run=1&step=1')
@@ -311,6 +418,87 @@ it('shows discovery limits, cycles, parallel actions, empty graphs, and escaped 
     expect(await page.locator('.graph-inspector pre').innerText()).toBe('Destination')
     await page.goto(viewer.url + '/#suite=1&view=graph')
     await page.getByRole('heading', { name: 'No observed states' }).waitFor()
+  } finally {
+    await page.close()
+  }
+})
+
+it('overlays coverage on the application map and reserves route highlighting for flow pages', async () => {
+  const page = await browser.newPage({ viewport: { width: 1680, height: 1120 } })
+  page.setDefaultTimeout(5000)
+  try {
+    const suite = await (await fetch(viewer.url + '/api/suites/5')).json()
+    expect(suite.graph.source).toBe('application')
+    expect(suite.graph.nodes).toHaveLength(3)
+    expect(suite.graph.edges).toHaveLength(3)
+    expect(suite.graph.edges[0].references).toHaveLength(4)
+    expect(await (await fetch(viewer.url + suite.downloads.graph)).json()).toEqual(suite.graph)
+    await page.goto(viewer.url + '/#suite=5&view=graph')
+    await page.locator('.react-flow__node').first().waitFor()
+    const geometry = await page
+      .locator('.react-flow__node')
+      .evaluateAll((items) => items.map((item) => (item as HTMLElement).style.transform))
+    const toggle = page.getByRole('checkbox', { name: 'Show flow coverage' })
+    expect(await toggle.isChecked()).toBe(true)
+    expect(await page.getByLabel('Graph flow', { exact: true }).count()).toBe(0)
+    expect(await page.getByLabel('Application coverage').innerText()).toContain(
+      '2/3 states visited · 1/3 transitions traversed · 4 distinct flows',
+    )
+    await page.locator('.react-flow__edge').first().waitFor({ state: 'attached' })
+    expect(await page.locator('.react-flow__node').count()).toBe(3)
+    expect(await page.locator('.react-flow__edge').count()).toBe(3)
+    expect(await page.locator('.flow-path-edge').count()).toBe(0)
+    expect(await page.locator('.coverage-visited').count()).toBe(2)
+    expect(await page.locator('.coverage-unvisited').count()).toBe(1)
+    await page.getByLabel('Select observed state').selectOption('0')
+    expect(
+      await page.getByRole('region', { name: 'Flow coverage', exact: true }).innerText(),
+    ).toContain('4 flows explored this')
+    expect(
+      await page
+        .getByRole('region', { name: 'Flow coverage', exact: true })
+        .locator('summary')
+        .allTextContents(),
+    ).toEqual(['flow-passed', 'flow-failed', 'flow-incomplete', 'flow-error'])
+    await page.getByRole('button', { name: 'Submit payment', exact: true }).click()
+    expect(
+      await page.getByRole('region', { name: 'Flow coverage', exact: true }).innerText(),
+    ).toContain('4 flows explored this')
+    await toggle.uncheck()
+    expect(await page.getByRole('region', { name: 'Flow coverage', exact: true }).count()).toBe(0)
+    expect(await page.getByLabel('Application coverage').count()).toBe(0)
+    expect(await page.locator('.coverage-visited, .coverage-unvisited').count()).toBe(0)
+    expect(await page.locator('.react-flow__edge-text').allTextContents()).not.toEqual(
+      expect.arrayContaining([expect.stringContaining('flows')]),
+    )
+    expect(
+      await page
+        .locator('.react-flow__node')
+        .evaluateAll((items) => items.map((item) => (item as HTMLElement).style.transform)),
+    ).toEqual(geometry)
+    await toggle.check()
+    await page.getByLabel('Select observed state').selectOption('2')
+    expect(
+      await page.getByRole('region', { name: 'Flow coverage', exact: true }).innerText(),
+    ).toContain('0 flows explored this')
+    expect(await page.locator('.graph-inspector').innerText()).toContain('Advanced settings')
+    expect(await page.locator('.graph-inspector').innerText()).toContain('destination unknown')
+    await page.goto(viewer.url + '/#suite=5&run=1&step=0')
+    await page.getByRole('heading', { name: 'Flow path in the application' }).waitFor()
+    await page.locator('.flow-path-edge').waitFor({ state: 'attached' })
+    expect(await page.locator('.react-flow__node').count()).toBe(3)
+    expect(await page.locator('.flow-path-edge').count()).toBe(1)
+    await page.locator('.react-flow__node[data-id="state-1"]').click()
+    await page.waitForURL(/step=1/)
+    await page.locator('.check .failed').waitFor()
+    expect(
+      await page.locator('.path-strip button[aria-current="step"]').getAttribute('data-step'),
+    ).toBe('1')
+    expect(
+      await page
+        .locator('.react-flow__node')
+        .evaluateAll((items) => items.map((item) => (item as HTMLElement).style.transform)),
+    ).toEqual(geometry)
   } finally {
     await page.close()
   }

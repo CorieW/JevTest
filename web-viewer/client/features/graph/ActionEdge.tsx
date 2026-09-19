@@ -12,10 +12,22 @@ export function ActionEdge({ id, data, markerEnd, selected }: EdgeProps<RoutedEd
       id={id}
       path={path}
       markerEnd={markerEnd}
-      label={data.label.length > 45 ? data.label.slice(0, 42) + '…' : data.label}
+      label={`${data.pathSteps?.length ? data.pathSteps.join(', ') + ' · ' : ''}${data.label.length > 45 ? data.label.slice(0, 42) + '…' : data.label}${data.flowCount !== undefined ? ` · ${data.flowCount} flows` : ''}`}
       labelX={middle.x}
       labelY={middle.y}
-      style={{ stroke: selected ? '#123f30' : '#668b7c', strokeWidth: selected ? 3 : 1.5 }}
+      style={{
+        stroke: data.current
+          ? '#b96b11'
+          : data.pathSteps?.length || selected || data.flowCount
+            ? '#146b43'
+            : '#8a9e94',
+        strokeWidth: data.current
+          ? 4
+          : data.pathSteps?.length || selected || data.flowCount
+            ? 3
+            : 1.5,
+        strokeDasharray: data.flowCount === 0 ? '5 4' : undefined,
+      }}
       labelStyle={{ fill: '#234536', fontSize: 11 }}
       labelBgStyle={{ fill: '#f4f8f5' }}
     />

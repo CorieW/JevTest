@@ -2,7 +2,13 @@
 import { graphlib, layout } from '@dagrejs/dagre'
 import { MarkerType, Position, type Node, type Edge } from '@xyflow/react'
 import type { ViewerGraph } from '../../../shared/types.js'
-export type RoutedEdge = Edge<{ points: { x: number; y: number }[]; label: string }>
+export type RoutedEdge = Edge<{
+  points: { x: number; y: number }[]
+  label: string
+  pathSteps?: number[]
+  current?: boolean
+  flowCount?: number
+}>
 export function layoutGraph(graph: ViewerGraph): { nodes: Node[]; edges: RoutedEdge[] } {
   const model = new graphlib.Graph({ multigraph: true })
     .setGraph({ rankdir: 'LR', nodesep: 50, ranksep: 220, edgesep: 30, marginx: 40, marginy: 40 })
@@ -26,7 +32,7 @@ export function layoutGraph(graph: ViewerGraph): { nodes: Node[]; edges: RoutedE
         sourcePosition: Position.Right,
         targetPosition: Position.Left,
         data: {
-          label: `State ${i + 1}\n${node.text.slice(0, 90) || node.url}`,
+          label: `State ${i + 1}\n${node.text.slice(0, 60) || node.url}${graph.frontier.some((item) => item.from === node.id) ? '\nUntried actions available' : ''}`,
           fingerprint: node.id,
         },
         style: { width: 220, height: 86 },

@@ -90,7 +90,11 @@ Replay opens a fresh fixture, verifies the initial fingerprint and checks, then 
 
 Run, replay, and discovery cleanup default to 15 seconds. Set `limits.cleanupTimeoutMs` in a project or pass the corresponding replay/crawl option to change that allowance. Concurrent close calls share one cleanup promise. Cleanup timeouts remain recorded failures; increasing the allowance does not convert state divergence into a successful replay.
 
-The crawler uses breadth-first reset-and-replay traversal, with depth, state, edge, and wall-clock limits. It makes no model calls and does not certify requirements. Its graph is only the explored portion of the supplied action space. Discovery errors and limit reasons are returned explicitly.
+The crawler uses breadth-first reset-and-replay traversal across configured entry contexts, with shared depth, state, edge, and wall-clock limits. `crawl({ adapter, flows })` explores multiple contexts; `flow` remains supported for a single context. Discovery ignores success checks, makes no model calls, and does not certify requirements. Results include `complete`, entry-context counts, and `frontier`: available actions whose destinations have not been explored. Failed actions remain in that list. Completeness covers only the reachable states exposed by the configured adapter, inputs, and fixtures.
+
+`jevtest discover --config jevtest/config.ts --output artifacts/run` explores every configured flow context and writes `action-space.json`, `graph.json`, and `graph.dot`. Use `--flow id` to restrict the starting context. CLI defaults are depth 5, 500 states, 1,000 transitions, and 60 seconds; override them with `--max-depth`, `--max-states`, `--max-edges`, and `--discovery-timeout` (milliseconds). The library defaults remain 50 states and 100 transitions. Incomplete discovery exits with code 1 while preserving its partial map. Later test runs preserve `action-space.json` and write their observed graph separately.
+
+WebViewer overlays recorded flow paths on the saved application map using exact state fingerprints and action definitions. Flow views retain the full map and layout, highlight only that flow's route, and show repeated transition step numbers. Missing discovery data, unresolved actions, and states not matched to the discovery map remain explicit. Matching requires consistent fixtures and state normalization between discovery and runs.
 
 ## Data handling and operating constraints
 

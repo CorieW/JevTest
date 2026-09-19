@@ -6,6 +6,8 @@ import { duration, policyLabel } from '../../lib/format.js'
 import { navigate } from '../../lib/route.js'
 import { Evidence } from './Evidence.js'
 import { Inspector } from './Inspector.js'
+import { ActionPath } from './ActionPath.js'
+import { ActionGraph } from '../graph/ActionGraph.js'
 
 export function RunDetail({
   suite,
@@ -22,12 +24,13 @@ export function RunDetail({
   const state = run.states[position]!
   const last = run.states.length - 1
   const [playing, setPlaying] = useState(false)
+  const [speed, setSpeed] = useState(1)
   const isPlaying = playing && position < last
   useEffect(() => {
     if (!isPlaying) return
-    const timer = window.setTimeout(() => navigate(suite.id, index, position + 1), 2200)
+    const timer = window.setTimeout(() => navigate(suite.id, index, position + 1), 2200 / speed)
     return () => window.clearTimeout(timer)
-  }, [isPlaying, suite.id, index, position])
+  }, [isPlaying, suite.id, index, position, speed])
   const choose = (next: number) => {
     setPlaying(false)
     navigate(suite.id, index, next)
@@ -75,9 +78,24 @@ export function RunDetail({
               setPlaying(true)
             }}
           >
-            {isPlaying ? 'Pause walkthrough' : 'Play captured steps'}
+            {isPlaying ? 'Pause timelapse' : 'Play timelapse'}
           </button>
-          <span className="step-label">Saved evidence · no actions are executed</span>
+          <label className="playback-speed">
+            Speed{' '}
+            <select
+              aria-label="Timelapse speed"
+              value={speed}
+              onChange={(event) => setSpeed(Number(event.target.value))}
+            >
+              <option value={0.5}>0.5×</option>
+              <option value={1}>1×</option>
+              <option value={2}>2×</option>
+              <option value={4}>4×</option>
+            </select>
+          </label>
+          <span className="step-label">
+            Captured frames at fixed intervals · no actions are executed
+          </span>
         </div>
         <div className="toolbar-group">
           <button id="previous" disabled={position === 0} onClick={() => choose(position - 1)}>
@@ -91,22 +109,24 @@ export function RunDetail({
           </button>
         </div>
       </div>
-      <div className="detail-grid">
-        <nav className="timeline panel" aria-label="Action timeline">
-          <div className="eyebrow">Action timeline</div>
-          {run.states.map((item, i) => (
-            <button
-              key={i}
-              data-step={i}
-              className={i === position ? 'active' : ''}
-              aria-current={i === position ? 'step' : false}
-              onClick={() => choose(i)}
-            >
-              <span className="step-number">{i}</span>
-              <span className="timeline-title">{item.title}</span>
-            </button>
-          ))}
-        </nav>
+      <label className="frame-scrubber">
+        Frame {position} of {last}
+        <input
+          aria-label="Timelapse frame"
+          type="range"
+          min={0}
+          max={last}
+          value={position}
+          disabled={last === 0}
+          onChange={(event) => choose(Number(event.target.value))}
+        />
+      </label>
+      <ActionPath states={run.states} position={position} onChoose={choose} />
+      <details className="flow-space" open>
+        <summary>Flow route on the application action space</summary>
+        <ActionGraph suite={suite} flowIndex={index} step={position} onChoose={choose} />
+      </details>
+      <div className="detail-grid flow-detail-grid">
         <Evidence state={state} />
         <Inspector run={run} state={state} />
       </div>
