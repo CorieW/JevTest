@@ -105,10 +105,29 @@ Model assessments check public requirements separately against observed changes.
 
 Every run saves `trace.json`, page snapshots, and masked screenshots. Suite output includes `report.html`, `summary.json`, `graph.json`, and `graph.dot`. Replay checks recorded states, action definitions, and assertions without asking Jev to choose again. State drift is reported instead of silently adapting the trace.
 
+## View saved runs
+
+The React viewer lives in [`web-viewer/`](web-viewer/README.md), separate from the testing engine. `pnpm build` and `pnpm setup:local` build both. To work on just the web-viewer, use `pnpm web-viewer:build`, `pnpm web-viewer:test`, or `pnpm web-viewer:serve --output artifacts/run`.
+
+```sh
+pnpm dev view --output artifacts/run
+# Open several suites together:
+pnpm dev view artifacts/first-run artifacts/second-run --port 4310
+```
+
+Open the printed local URL to search and filter flows, step through captured pages, compare expected and actual values, and inspect state changes and model assessments. The **Action graph** tab uses React Flow and Dagre to display states and labeled transitions with zoom, pan, a minimap, and links to recorded evidence. Filter to one flow to inspect its path; suites with more than 50 runs initially show the first flow.
+
+The viewer reads JevTest `summary.json` directories, including older reports, and standalone `graph.json` directories from `jevtest discover`. Discovery views show recorded limits and errors, without assigning correctness outcomes. No project config or API key is needed. Refresh results to load updated files.
+
+Use `--title "Checkout checks"` with `jevtest run` to give a suite a display name. Library callers can pass `{ title, policy }` as the fourth argument to `writeReport`.
+
+Playback displays saved evidence and does not execute actions. Model findings remain candidates, incomplete runs remain incomplete, and missing usage is labelled as unrecorded. The viewer binds to `127.0.0.1`, serves only report files and recorded evidence, and blocks scripts in captured pages. Stop it with Ctrl+C. Keep report directories private: they can contain application data.
+
 ## Project structure
 
 ```text
-src/             Runner, Jev policy, Playwright adapter, CLI, replay, reports, graph
+src/             Testing engine, policies, adapters, CLI, replay, reports, graph
+web-viewer/         React viewer, local read-only host, web-viewer build and tests
 test/            Offline contract and real Chromium integration tests
 examples/        Four evaluated applications and a standalone RepairWorks application
 config/          TypeScript, ESLint, Prettier, Vitest configuration

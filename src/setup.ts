@@ -61,6 +61,14 @@ export async function setupLocal(
     options.signal,
   )
   options.signal?.throwIfAborted()
+  options.progress?.('Building the web-viewer…')
+  await dependencies.execute(
+    fileURLToPath(new URL('../web-viewer/build.mjs', import.meta.url)),
+    [],
+    checkout,
+    options.signal,
+  )
+  options.signal?.throwIfAborted()
   if (options.skipBrowser) {
     options.progress?.('Browser installation skipped.')
     return

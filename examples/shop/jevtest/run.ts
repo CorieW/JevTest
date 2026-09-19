@@ -62,7 +62,9 @@ try {
   }
   await mkdir(output, { recursive: true })
   await writeFile(resolve(output, 'metrics.json'), JSON.stringify(metrics, null, 2))
-  const report = await writeReport(results, output, budget.usage)
+  const report = await writeReport(results, output, budget.usage, {
+    policy: live ? 'jev' : 'baseline',
+  })
   console.log(
     JSON.stringify({ ...metrics, labeled: undefined, replays: undefined, report }, null, 2),
   )

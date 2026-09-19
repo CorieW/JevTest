@@ -333,7 +333,7 @@ for (const benchmark of chosen) {
         cases: scores,
       }
       await writeFile(resolve(outputDir, 'evaluation.json'), JSON.stringify(evaluation, null, 2))
-      await writeReport(records, outputDir, usage)
+      await writeReport(records, outputDir, usage, { policy: mode })
       if (values['write-results']) {
         const target = `examples/${benchmark.slug}/results`
         await mkdir(target, { recursive: true })

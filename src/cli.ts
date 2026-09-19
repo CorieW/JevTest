@@ -2,7 +2,7 @@
 // CLI loads trusted project code and runs, discovers, or replays local test flows.
 import { parseArgs } from 'node:util'
 import { resolve } from 'node:path'
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { access, mkdir, readFile, writeFile } from 'node:fs/promises'
 import type { RunResult } from './types.js'
 import { JevPolicy, TokenBudget, TraversalPolicy } from './jev.js'
 import { runSuite } from './runner.js'
@@ -25,6 +25,8 @@ async function main() {
       'env-file': { type: 'string' },
       'skip-browser': { type: 'boolean' },
       output: { type: 'string' },
+      port: { type: 'string' },
+      title: { type: 'string' },
       policy: { type: 'string', default: 'jev' },
       flow: { type: 'string' },
       trace: { type: 'string' },
@@ -36,7 +38,7 @@ async function main() {
   const command = positionals[0] ?? 'help'
   if (values.help || command === 'help') {
     console.log(
-      `JevTest — bounded exploratory testing\n\n  jevtest setup [--skip-browser]\n  jevtest init\n  jevtest doctor [--policy baseline] [--config path]\n  jevtest run --config project.config.ts [--policy jev|baseline] [--flow id]\n  jevtest discover --config project.config.ts --flow id\n  jevtest replay --config project.config.ts --trace path/to/trace.json\n\nOptions: --env-file .env.local --output directory --max-tokens 250000 --max-requests 100\nNode 24 loads erasable TypeScript configs. Config files are trusted executable code.\nSet TYPESAFE_API_KEY for Jev. Replay, discovery and baseline do not use the API.`,
+      `JevTest — bounded exploratory testing\n\n  jevtest setup [--skip-browser]\n  jevtest init\n  jevtest doctor [--policy baseline] [--config path]\n  jevtest run --config project.config.ts [--policy jev|baseline] [--flow id]\n  jevtest discover --config project.config.ts --flow id\n  jevtest view [report-directory ...] [--output artifacts/run] [--port 4310]\n  jevtest replay --config project.config.ts --trace path/to/trace.json\n\nOptions: --env-file .env.local --output directory --title "Suite name" --max-tokens 250000 --max-requests 100\nNode 24 loads erasable TypeScript configs. Config files are trusted executable code.\nSet TYPESAFE_API_KEY for Jev. Replay, discovery and baseline do not use the API.`,
     )
     return
   }
@@ -44,6 +46,20 @@ async function main() {
     console.log(
       `Created integration: ${(await initialize()).join(', ')}\nBuild JevTest, then edit jevtest/flows.ts and the unfinished checks before running.`,
     )
+    return
+  }
+  if (command === 'view') {
+    const entry = new URL('../dist/web-viewer/command.js', import.meta.url)
+    await access(entry).catch(() => {
+      throw new Error('Build the web-viewer first: pnpm web-viewer:build')
+    })
+    const { runViewerCommand } = await import(entry.href)
+    await runViewerCommand({
+      directories: positionals.slice(1).length
+        ? positionals.slice(1)
+        : [values.output ?? 'artifacts/run'],
+      port: values.port === undefined ? undefined : Number(values.port),
+    })
     return
   }
   if (command === 'setup') {
@@ -164,6 +180,7 @@ async function main() {
       results,
       output,
       policy instanceof JevPolicy ? policy.budget.usage : undefined,
+      { policy: values.policy, title: values.title },
     )
     console.log(results.map((r) => `${r.status.padEnd(10)} ${r.flow.id}: ${r.reason}`).join('\n'))
     console.log(`Report: ${report}`)
