@@ -19,6 +19,7 @@ export function SuiteView({
   const [page, setPage] = useState(0)
   const run =
     route.run !== undefined && Number.isInteger(route.run) ? suite.runs[route.run] : undefined
+  const showGraph = route.view !== 'flows' || suite.graph.source === 'discovery'
   if (run)
     return (
       <RunDetail
@@ -32,24 +33,14 @@ export function SuiteView({
   return (
     <>
       <nav className="viewer-tabs" aria-label="Suite views">
-        <a
-          href={`#suite=${suite.id}`}
-          aria-current={
-            route.view !== 'graph' && suite.graph.source !== 'discovery' ? 'page' : undefined
-          }
-        >
-          Recorded flows
-        </a>
-        <a
-          href={`#suite=${suite.id}&view=graph`}
-          aria-current={
-            route.view === 'graph' || suite.graph.source === 'discovery' ? 'page' : undefined
-          }
-        >
+        <a href={`#suite=${suite.id}&view=graph`} aria-current={showGraph ? 'page' : undefined}>
           Action graph
         </a>
+        <a href={`#suite=${suite.id}&view=flows`} aria-current={!showGraph ? 'page' : undefined}>
+          Recorded flows
+        </a>
       </nav>
-      {route.view === 'graph' || suite.graph.source === 'discovery' ? (
+      {showGraph ? (
         <ActionGraph key={refresh} suite={suite} />
       ) : (
         <Overview

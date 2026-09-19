@@ -21,8 +21,9 @@ export function useRoute(): Route {
     view: params.get('view') ?? undefined,
   }
 }
-export function navigate(suite: number, run?: number, step = 0) {
+export function navigate(suite: number, run?: number, step = 0, view?: 'graph' | 'flows') {
   const params = new URLSearchParams({ suite: String(suite) })
+  if (view) params.set('view', view)
   if (run !== undefined) {
     params.set('run', String(run))
     params.set('step', String(step))

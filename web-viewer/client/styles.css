@@ -25,9 +25,6 @@
 .coverage-unvisited {
   border: 1px dashed #829389 !important;
 }
-.graph-coverage {
-  margin-bottom: 24px;
-}
 .coverage-toggle {
   display: flex;
   align-items: center;
@@ -38,9 +35,97 @@
   width: auto;
   accent-color: #23774f;
 }
-.graph-coverage p {
+.graph-heading.heading {
+  margin-bottom: 16px;
+}
+.graph-heading h1,
+.graph-heading h2 {
+  margin: 0;
+}
+.graph-heading p {
+  margin: 6px 0 0;
+  color: #617669;
+}
+.graph-heading a {
+  font-size: 12px;
+}
+.graph-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 28px;
+  padding: 14px 18px;
+  border: 1px solid #d4dcd8;
+  border-radius: 10px;
+  background: white;
+  font-size: 12px;
+}
+.coverage-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
   color: #536d60;
-  margin: 8px 0;
+}
+.coverage-stats b {
+  color: #163e30;
+  font-variant-numeric: tabular-nums;
+}
+.graph-context {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: start;
+  gap: 12px;
+  margin: 12px 0 16px;
+  font-size: 12px;
+}
+.graph-discovery {
+  flex: 1;
+  min-width: 220px;
+}
+.graph-discovery summary {
+  cursor: pointer;
+  color: #617669;
+}
+.graph-discovery summary span {
+  margin-right: 12px;
+}
+.map-status {
+  color: #805b20;
+  font-weight: 600;
+}
+.map-status.complete {
+  color: #23774f;
+}
+.graph-discovery-details {
+  max-width: 760px;
+  padding: 4px 14px;
+  margin-top: 8px;
+  border-left: 2px solid #d4dcd8;
+  color: #536d60;
+}
+.coverage-legend,
+.coverage-legend span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.coverage-legend {
+  gap: 16px;
+  color: #617669;
+}
+.coverage-legend i {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+.legend-visited {
+  background: #def2e6;
+  border: 1px solid #23774f;
+}
+.legend-unvisited {
+  border: 1px dashed #829389;
 }
 
 .flow-detail-grid.detail-grid {
@@ -207,14 +292,14 @@
   gap: 20px;
 }
 .graph-canvas {
-  height: 620px;
+  height: clamp(460px, calc(100vh - 350px), 820px);
   min-width: 0;
   overflow: hidden;
 }
 .graph-inspector {
   padding: 20px;
   min-width: 0;
-  max-height: 620px;
+  max-height: clamp(460px, calc(100vh - 350px), 820px);
   overflow: auto;
   overflow-wrap: anywhere;
 }
@@ -235,20 +320,6 @@
   border-radius: 7px;
   background: white;
   color: #31473e;
-}
-.graph-flow-filter {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 0 0 20px;
-}
-.graph-flow-filter select {
-  min-width: 0;
-  max-width: 70%;
-  padding: 9px;
-  border: 1px solid #d4dcd8;
-  border-radius: 7px;
-  background: white;
 }
 .graph-inspector pre {
   white-space: pre-wrap;

@@ -15,6 +15,7 @@ import { navigate } from '../../lib/route.js'
 import { Badge } from '../../components/Badge.js'
 import { graphCoverage } from './coverage.js'
 import { FlowCoverage } from './FlowCoverage.js'
+import { GraphSummary } from './GraphSummary.js'
 const edgeTypes = { routed: ActionEdge }
 export function ActionGraph({
   suite,
@@ -32,7 +33,6 @@ export function ActionGraph({
   const coverageVisible = flowIndex === undefined && showCoverage
   const graph = suite.graph
   const coverage = useMemo(() => graphCoverage(graph, suite.runs), [graph, suite.runs])
-  const Heading = flowIndex === undefined ? 'h1' : 'h2'
   const { nodes, edges } = useMemo(() => layoutGraph(graph), [graph])
   const [selection, setSelection] = useState<{ kind: 'node' | 'edge'; index: number }>()
   const [query, setQuery] = useState('')
@@ -43,7 +43,7 @@ export function ActionGraph({
         ...node,
         data: {
           ...node.data,
-          label: `${node.data.label}${coverageVisible ? `\n${coverage.nodes[index]} flows` : ''}`,
+          label: `${node.data.label}${coverageVisible ? `\n${coverage.nodes[index]} ${coverage.nodes[index] === 1 ? 'flow' : 'flows'}` : ''}`,
         },
         className:
           runIndex !== 'all' &&
@@ -121,79 +121,13 @@ export function ActionGraph({
     )
   return (
     <section className="action-graph">
-      <div className="heading">
-        <div>
-          <div className="eyebrow">Application action space</div>
-          <Heading>{flowIndex === undefined ? suite.name : 'Flow path in the application'}</Heading>
-          <p>
-            {graph.nodes.length} observed states · {graph.edges.length} recorded transitions
-          </p>
-        </div>
-        <a href={suite.downloads.graph} download>
-          Download graph JSON ↗
-        </a>
-      </div>
-      <p className="graph-note">
-        {graph.source === 'runs'
-          ? 'Application discovery has not been loaded. This partial map contains recorded states and known untried actions. Run project discovery into this report directory to expand it.'
-          : graph.complete
-            ? 'All reachable actions exposed by the configured entry points and fixture inputs were explored. This does not prove coverage of other inputs, roles, or external states.'
-            : 'Partial application action space: discovery limits or errors may leave paths unexplored.'}
-        {runIndex !== 'all' &&
-          ' The full map stays in place; only this flow’s route is highlighted. Edge numbers show execution order.'}
-      </p>
-      <p className="graph-note">
-        {graph.frontier.length} known untried actions
-        {graph.entryPoints
-          ? ` · ${graph.entryPoints.opened}/${graph.entryPoints.requested} entry contexts opened`
-          : ''}
-      </p>
-      {graph.stopped && <p className="graph-note">Discovery stopped: {graph.stopped}</p>}
-      {!!graph.unmatchedRunStates && (
-        <p className="graph-note">
-          {graph.unmatchedRunStates} recorded states were not in the saved discovery map. They are
-          included without guessing connections to other states.
-        </p>
-      )}
-      {flowIndex === undefined && (
-        <div className="graph-coverage">
-          <label className="coverage-toggle">
-            <input
-              type="checkbox"
-              checked={showCoverage}
-              onChange={(event) => setShowCoverage(event.target.checked)}
-            />
-            Show flow coverage
-          </label>
-          {showCoverage && (
-            <div aria-label="Application coverage">
-              <p>
-                {coverage.visitedStates}/{nodes.length} states visited ·{' '}
-                {coverage.traversedTransitions}/{edges.length} transitions traversed ·{' '}
-                {coverage.flows} distinct flows
-              </p>
-              <p>
-                Green: visited by flows. Dashed: no flow visits. Click a state or action to see its
-                flows.
-              </p>
-              <p>
-                Coverage measures recorded flow visits on the known map, regardless of test outcome.
-                Discovery alone does not count as flow coverage; unknown paths are not included.
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-      {graph.errors.length > 0 && (
-        <details className="error-box">
-          <summary>{graph.errors.length} discovery error(s)</summary>
-          <ul>
-            {graph.errors.map((error, index) => (
-              <li key={index}>{error}</li>
-            ))}
-          </ul>
-        </details>
-      )}
+      <GraphSummary
+        suite={suite}
+        coverage={coverage}
+        showCoverage={showCoverage}
+        onCoverage={setShowCoverage}
+        isFlow={flowIndex !== undefined}
+      />
       {nodes.length === 0 ? (
         <div className="panel empty">
           <h2>No observed states</h2>
@@ -238,6 +172,7 @@ export function ActionGraph({
               <MiniMap
                 pannable
                 zoomable
+                style={{ width: 140, height: 90 }}
                 nodeColor={(node) =>
                   node.className === 'flow-path-node' || node.className === 'coverage-visited'
                     ? '#23774f'
@@ -247,7 +182,7 @@ export function ActionGraph({
             </ReactFlow>
           </div>
           <aside className="panel graph-inspector" aria-label="Graph inspector">
-            <h2>Inspect the graph</h2>
+            <h2>Inspect</h2>
             <label>
               Find a state
               <input
@@ -280,10 +215,10 @@ export function ActionGraph({
             {selectedNode ? (
               <>
                 <h3>State {selection!.index + 1}</h3>
-                <code>{selectedNode.id}</code>
-                <p>{selectedNode.url}</p>
-                <details open>
-                  <summary>Observed text</summary>
+                <details>
+                  <summary>State details</summary>
+                  <code>{selectedNode.id}</code>
+                  <p>{selectedNode.url}</p>
                   <pre>{selectedNode.text || 'No text recorded.'}</pre>
                 </details>
                 {flowIndex === undefined ? (
@@ -372,8 +307,8 @@ export function ActionGraph({
               </>
             ) : (
               <p>
-                Select a state or action. Scroll to zoom, drag the background to pan, or use the
-                fit-view control.
+                Click a state or action to see its details and recorded flows. Scroll to zoom; drag
+                to pan.
               </p>
             )}
           </aside>

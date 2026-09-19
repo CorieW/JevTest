@@ -12,7 +12,7 @@ export function ActionEdge({ id, data, markerEnd, selected }: EdgeProps<RoutedEd
       id={id}
       path={path}
       markerEnd={markerEnd}
-      label={`${data.pathSteps?.length ? data.pathSteps.join(', ') + ' · ' : ''}${data.label.length > 45 ? data.label.slice(0, 42) + '…' : data.label}${data.flowCount !== undefined ? ` · ${data.flowCount} flows` : ''}`}
+      label={`${data.pathSteps?.length ? data.pathSteps.join(', ') + ' · ' : ''}${data.label.length > 45 ? data.label.slice(0, 42) + '…' : data.label}${data.flowCount !== undefined ? ` · ${data.flowCount} ${data.flowCount === 1 ? 'flow' : 'flows'}` : ''}`}
       labelX={middle.x}
       labelY={middle.y}
       style={{

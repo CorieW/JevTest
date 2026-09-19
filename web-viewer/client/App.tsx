@@ -87,7 +87,7 @@ export function App() {
         <header className="topbar">
           <span id="breadcrumb">
             {current
-              ? `${current.name} / ${route.run !== undefined ? 'Flow evidence' : route.view === 'graph' || current.graph.source === 'discovery' ? 'Action graph' : 'Overview'}`
+              ? `${current.name} / ${route.run !== undefined ? 'Flow evidence' : route.view !== 'flows' || current.graph.source === 'discovery' ? 'Action graph' : 'Recorded flows'}`
               : 'Saved runs'}
           </span>
           <span className="topbar-right">

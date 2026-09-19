@@ -204,7 +204,7 @@ it('serves only read-only, allowlisted evidence inside the suite', async () => {
 it('filters, searches, preserves outcome semantics, and steps through evidence safely', async () => {
   const page = await browser.newPage({ viewport: { width: 1600, height: 1050 } })
   try {
-    await page.goto(viewer.url)
+    await page.goto(viewer.url + '/#view=flows')
     await page.getByRole('heading', { name: /Recorded flows/ }).waitFor()
     expect(await page.locator('.flow-link').count()).toBe(4)
     await page.getByRole('button', { name: 'Filter failed flows', exact: true }).click()
@@ -271,7 +271,7 @@ it('handles missing evidence, empty suites, playback, and narrow screens', async
     await page.getByRole('button', { name: 'Play timelapse', exact: true }).click()
     await page.waitForURL(/step=1/)
     await page.getByRole('button', { name: 'Play timelapse', exact: true }).waitFor()
-    await page.goto(viewer.url + '/#suite=1')
+    await page.goto(viewer.url + '/#suite=1&view=flows')
     await page.getByRole('heading', { name: 'No matching flows' }).waitFor()
     expect(await page.locator('.stat b').allTextContents()).toEqual(['0', '0', '0', '0'])
     expect(await page.locator('main').innerText()).toContain('API usage not recorded')
@@ -334,7 +334,7 @@ it('cancels playback when navigating away from a run', async () => {
     await page.goto(viewer.url + '/#suite=0&run=0&step=0')
     await page.getByRole('button', { name: 'Play timelapse', exact: true }).click()
     await page.locator('[data-suite="1"]').click()
-    await page.getByRole('heading', { name: 'No matching flows' }).waitFor()
+    await page.getByRole('heading', { name: 'No observed states' }).waitFor()
     await page.clock.fastForward(5000)
     expect(new URL(page.url()).hash).toBe('#suite=1')
     expect(await page.locator('.flow-link').count()).toBe(0)
@@ -351,6 +351,7 @@ it('recovers from a failed result request through the retry control', async () =
     await page.getByRole('heading', { name: 'Unable to open saved results' }).waitFor()
     await page.unroute('**/api/suites/0')
     await page.getByRole('button', { name: 'Try again', exact: true }).click()
+    await page.getByRole('link', { name: 'Recorded flows', exact: true }).click()
     await page.getByRole('heading', { name: /Recorded flows/ }).waitFor()
     expect(await page.locator('.flow-link').count()).toBe(4)
   } finally {
@@ -365,7 +366,25 @@ it('renders the observed graph, supports zoom, and opens exact recorded evidence
   page.on('pageerror', (error) => errors.push(error.message))
   try {
     await page.goto(viewer.url)
-    await page.getByRole('link', { name: 'Action graph', exact: true }).click()
+    await page.getByRole('navigation', { name: 'Suite views' }).waitFor()
+    expect(
+      await page
+        .getByRole('navigation', { name: 'Suite views' })
+        .getByRole('link')
+        .allTextContents(),
+    ).toEqual(['Action graph', 'Recorded flows'])
+    expect(
+      await page
+        .getByRole('link', { name: 'Action graph', exact: true })
+        .getAttribute('aria-current'),
+    ).toBe('page')
+    expect(await page.locator('.graph-discovery').getAttribute('open')).toBeNull()
+    await page.getByRole('link', { name: 'Recorded flows', exact: true }).click()
+    await page.getByRole('heading', { name: /Recorded flows/ }).waitFor()
+    await page.reload()
+    await page.getByRole('heading', { name: /Recorded flows/ }).waitFor()
+    await page.goBack()
+    await page.getByRole('link', { name: 'Action graph', exact: true }).waitFor()
     await page.locator('.react-flow__node').first().waitFor()
     expect(await page.locator('.react-flow__node').count()).toBe(2)
     expect(await page.locator('.react-flow__minimap-node').count()).toBe(2)
@@ -406,15 +425,18 @@ it('shows discovery limits, cycles, parallel actions, empty graphs, and escaped 
       .evaluateAll((items) => items.map((item) => item.getAttribute('d')))
     expect(new Set(paths).size).toBe(4)
     expect(paths.every((path) => path && !path.includes('NaN'))).toBe(true)
+    await page.locator('.graph-discovery > summary').click()
     expect(await page.locator('main').innerText()).toContain('State limit reached')
     expect(await page.locator('main').innerText()).toContain('1 discovery error(s)')
     expect(await page.evaluate(() => 'viewerInjected' in window)).toBe(false)
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     await page.getByLabel('Select observed state', { exact: true }).selectOption('0')
+    await page.getByText('State details', { exact: true }).click()
     expect(await page.locator('.graph-inspector pre').innerText()).toBe(attack)
     await page.getByRole('button', { name: 'Second route', exact: true }).click()
     await page.getByRole('heading', { name: 'Recorded action' }).waitFor()
     await page.getByRole('button', { name: 'Inspect destination state' }).click()
+    await page.getByText('State details', { exact: true }).click()
     expect(await page.locator('.graph-inspector pre').innerText()).toBe('Destination')
     await page.goto(viewer.url + '/#suite=1&view=graph')
     await page.getByRole('heading', { name: 'No observed states' }).waitFor()
@@ -441,8 +463,8 @@ it('overlays coverage on the application map and reserves route highlighting for
     const toggle = page.getByRole('checkbox', { name: 'Show flow coverage' })
     expect(await toggle.isChecked()).toBe(true)
     expect(await page.getByLabel('Graph flow', { exact: true }).count()).toBe(0)
-    expect(await page.getByLabel('Application coverage').innerText()).toContain(
-      '2/3 states visited · 1/3 transitions traversed · 4 distinct flows',
+    expect(await page.getByLabel('Application coverage').locator('span').allTextContents()).toEqual(
+      ['2/3 states visited', '1/3 transitions traversed', '4 distinct flows'],
     )
     await page.locator('.react-flow__edge').first().waitFor({ state: 'attached' })
     expect(await page.locator('.react-flow__node').count()).toBe(3)
@@ -545,7 +567,7 @@ it('paginates larger suites and refreshes edited saved results', async () => {
   const summaryPath = join(root, 'paginated', 'summary.json')
   const original = await readFile(summaryPath, 'utf8')
   try {
-    await page.goto(viewer.url + '/#suite=2')
+    await page.goto(viewer.url + '/#suite=2&view=flows')
     await page.getByRole('heading', { name: /Recorded flows/ }).waitFor()
     expect(await page.locator('.flow-link').count()).toBe(15)
     await page.getByRole('button', { name: 'Next page', exact: true }).click()

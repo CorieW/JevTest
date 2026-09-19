@@ -37,7 +37,7 @@ export function RunDetail({
   }
   return (
     <>
-      <button className="back" id="back" onClick={() => navigate(suite.id)}>
+      <button className="back" id="back" onClick={() => navigate(suite.id, undefined, 0, 'flows')}>
         ← All flows
       </button>
       <div className="run-heading">

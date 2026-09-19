@@ -7,7 +7,7 @@ pnpm web-viewer:serve --output artifacts/run
 pnpm web-viewer:serve artifacts/first-run artifacts/second-run --port 4310
 ```
 
-Open the printed loopback URL. Filtering, playback, exact checks, state changes, and diagnostics all operate on saved evidence. No model API key is needed. Stop the server with Ctrl+C.
+Open the printed loopback URL. **Action graph** is the first and default tab; **Recorded flows** opens the run list. Filtering, playback, exact checks, state changes, and diagnostics all operate on saved evidence. No model API key is needed. Stop the server with Ctrl+C.
 
 Inside a flow, **Recorded action path** shows an ordered screenshot strip. Select a frame or use the slider to inspect that step, then use **Play timelapse** to advance at 0.5×–4× speed. Playback uses fixed intervals between captures, preserves repeated visits, and pauses when you select a frame. Snapshot-only and missing captures are labelled rather than replaced with another step's image. The full-size evidence panel and exact checks stay synchronized with the selected frame.
 
