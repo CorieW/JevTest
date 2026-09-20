@@ -4,7 +4,7 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import type { Adapter, RunResult, Session } from './types.js'
 import { bounded, checkOutcome } from './runner.js'
-import { errorMessage, stable } from './util.js'
+import { errorMessage, positiveInteger, stable } from './util.js'
 
 export interface ReplayResult {
   sourceRun: string
@@ -18,7 +18,11 @@ export async function replay(
   adapter: Adapter,
   outputDir = 'artifacts',
   timeoutMs = 120_000,
+  cleanupTimeoutMs = 15_000,
+  externalSignal?: AbortSignal,
 ): Promise<ReplayResult> {
+  positiveInteger(timeoutMs, 'timeoutMs')
+  positiveInteger(cleanupTimeoutMs, 'cleanupTimeoutMs')
   const id = `replay-${randomUUID()}`
   const directory = resolve(outputDir, id)
   await mkdir(directory, { recursive: true })
@@ -29,7 +33,10 @@ export async function replay(
     reason: '',
     directory,
   }
-  const signal = AbortSignal.timeout(timeoutMs)
+  const signal = AbortSignal.any([
+    AbortSignal.timeout(timeoutMs),
+    ...(externalSignal ? [externalSignal] : []),
+  ])
   let session: Session | undefined
   try {
     const opening = adapter.open(trace.flow, id)
@@ -91,7 +98,7 @@ export async function replay(
     result.reason = errorMessage(error)
   } finally {
     if (session)
-      await bounded(session.close(), AbortSignal.timeout(5000)).catch((error) => {
+      await bounded(session.close(), AbortSignal.timeout(cleanupTimeoutMs)).catch((error) => {
         result.reproduced = false
         result.reason += `; cleanup: ${errorMessage(error)}`
       })

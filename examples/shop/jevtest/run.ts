@@ -1,13 +1,21 @@
 // Compare measured outcomes with planted faults and replay every run without extra API calls.
 import { writeFile, mkdir } from 'node:fs/promises'
 import { resolve } from 'node:path'
-import { startShop } from './server.js'
+import { startShop } from '../src/server.js'
 import { cases, shopProject } from './project.js'
-import { JevPolicy, TokenBudget, TraversalPolicy } from '../../src/jev.js'
-import { runSuite } from '../../src/runner.js'
-import { replay } from '../../src/replay.js'
-import { writeReport } from '../../src/report.js'
+import { JevPolicy, TokenBudget, TraversalPolicy } from '../../../src/jev.js'
+import { runSuite } from '../../../src/runner.js'
+import { replay } from '../../../src/replay.js'
+import { writeReport } from '../../../src/report.js'
+import { loadEnvironment } from '../../../src/environment.js'
 
+const envIndex = process.argv.indexOf('--env-file')
+if (
+  envIndex !== -1 &&
+  (!process.argv[envIndex + 1] || process.argv[envIndex + 1]!.startsWith('--'))
+)
+  throw new Error('--env-file requires a path')
+await loadEnvironment(envIndex === -1 ? undefined : process.argv[envIndex + 1])
 const live = process.argv.includes('--live')
 const output = resolve(
   `artifacts/${live ? 'live' : 'baseline'}-${new Date().toISOString().replace(/[:.]/g, '-')}`,
@@ -54,7 +62,9 @@ try {
   }
   await mkdir(output, { recursive: true })
   await writeFile(resolve(output, 'metrics.json'), JSON.stringify(metrics, null, 2))
-  const report = await writeReport(results, output, budget.usage)
+  const report = await writeReport(results, output, budget.usage, {
+    policy: live ? 'jev' : 'baseline',
+  })
   console.log(
     JSON.stringify({ ...metrics, labeled: undefined, replays: undefined, report }, null, 2),
   )

@@ -1,7 +1,7 @@
 # Rules
 
 - Keep this a single root TypeScript package; do not add apps/packages workspaces or CorieW dependencies.
-- Keep source under `src/`, tests under `test/`, configuration under `config/`, and extended documentation under `docs/`.
+- Keep testing-engine source under `src/`, its tests under `test/`, configuration under `config/`, and extended documentation under `docs/`. Keep the React viewer, local viewer host, web-viewer build/configuration, and web-viewer tests separate under `web-viewer/`.
 - Keep exact correctness assertions independent of discovered actions and model judgments.
 - Keep abort, cancellation, and exhausted limits incomplete; never treat them as passes.
 - Keep credentials and generated evidence out of version control.

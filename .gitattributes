@@ -1,0 +1,2 @@
+# Collapse machine-generated evaluation records in GitHub diffs.
+examples/*/results/*.json linguist-generated=true

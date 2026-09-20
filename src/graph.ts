@@ -43,27 +43,57 @@ export function toDot(graph: Graph): string {
     '}',
   ].join('\n')
 }
+export interface DiscoveryGraph extends Graph {
+  stopped: string
+  errors: string[]
+  complete: boolean
+  entryPoints: { requested: number; opened: number }
+  frontier: { from: string; action: Action; flowId: string }[]
+}
 export async function crawl(options: {
   adapter: Adapter
-  flow: Flow
+  flow?: Flow
+  flows?: Flow[]
   maxDepth?: number
   maxStates?: number
   maxEdges?: number
   timeoutMs?: number
-}): Promise<Graph & { stopped: string; errors: string[] }> {
+  cleanupTimeoutMs?: number
+  signal?: AbortSignal
+}): Promise<DiscoveryGraph> {
+  const flows = options.flows ?? (options.flow ? [options.flow] : [])
+  if (!flows.length) throw new Error('Discovery requires at least one entry flow.')
   const maxDepth = positiveInteger(options.maxDepth ?? 5, 'maxDepth')
   const maxStates = positiveInteger(options.maxStates ?? 50, 'maxStates')
   const maxEdges = positiveInteger(options.maxEdges ?? 100, 'maxEdges')
-  const signal = AbortSignal.timeout(positiveInteger(options.timeoutMs ?? 60_000, 'timeoutMs'))
+  const signal = AbortSignal.any([
+    AbortSignal.timeout(positiveInteger(options.timeoutMs ?? 60_000, 'timeoutMs')),
+    ...(options.signal ? [options.signal] : []),
+  ])
+  const cleanupTimeout = positiveInteger(options.cleanupTimeoutMs ?? 15_000, 'cleanupTimeoutMs')
   const nodes = new Map<string, Graph['nodes'][number]>()
-  const edges: Graph['edges'] = []
+  const edges = new Map<string, Graph['edges'][number]>()
   const errors: string[] = []
-  const queue: { path: Action[]; state: Observation }[] = []
-  let stopped = 'Reachable action space explored within depth limit'
-  async function withSession<T>(fn: (s: Session) => Promise<T>): Promise<T> {
+  const queue: { flow: Flow; path: Action[]; state: Observation }[] = []
+  const visited = new Set<string>()
+  const frontier = new Map<string, DiscoveryGraph['frontier'][number]>()
+  let opened = 0
+  let stopped = 'Configured reachable action space explored'
+  const key = (flow: Flow, state: Observation, action?: Action) =>
+    stable([flow.id, state.fingerprint, action])
+  const enqueue = (flow: Flow, state: Observation, path: Action[]) => {
+    const identity = key(flow, state)
+    if (visited.has(identity)) return
+    visited.add(identity)
+    nodes.set(state.fingerprint, { id: state.fingerprint, url: state.url, text: state.text })
+    for (const action of state.actions)
+      frontier.set(key(flow, state, action), { from: state.fingerprint, action, flowId: flow.id })
+    queue.push({ flow, state, path })
+  }
+  async function withSession<T>(flow: Flow, fn: (s: Session) => Promise<T>): Promise<T> {
     let session: Session | undefined
     try {
-      const opening = options.adapter.open(options.flow, `crawl-${randomUUID()}`)
+      const opening = options.adapter.open(flow, `crawl-${randomUUID()}`)
       opening.then(
         (s) => {
           if (signal.aborted) void s.close().catch(() => {})
@@ -73,23 +103,30 @@ export async function crawl(options: {
       session = await bounded(opening, signal)
       return await bounded(fn(session), signal)
     } finally {
-      if (session) await bounded(session.close(), AbortSignal.timeout(5000))
+      if (session) await bounded(session.close(), AbortSignal.timeout(cleanupTimeout))
     }
   }
-  const add = (state: Observation) =>
-    nodes.set(state.fingerprint, { id: state.fingerprint, url: state.url, text: state.text })
   try {
-    const initial = await withSession((s) => s.observe())
-    add(initial)
-    queue.push({ path: [], state: initial })
-    while (queue.length && nodes.size < maxStates && edges.length < maxEdges) {
+    for (const flow of flows) {
+      signal.throwIfAborted()
+      if (nodes.size >= maxStates) break
+      try {
+        const initial = await withSession(flow, (s) => s.observe())
+        opened++
+        enqueue(flow, initial, [])
+      } catch (error) {
+        if (signal.aborted) throw error
+        errors.push(errorMessage(error))
+      }
+    }
+    while (queue.length && nodes.size < maxStates && edges.size < maxEdges) {
       const next = queue.shift()!
       if (next.path.length >= maxDepth) continue
       for (const action of next.state.actions) {
         signal.throwIfAborted()
-        if (nodes.size >= maxStates || edges.length >= maxEdges) break
+        if (nodes.size >= maxStates || edges.size >= maxEdges) break
         try {
-          const after = await withSession(async (s) => {
+          const after = await withSession(next.flow, async (s) => {
             for (const prior of next.path) {
               signal.throwIfAborted()
               await s.execute(prior)
@@ -104,11 +141,10 @@ export async function crawl(options: {
             await s.execute(available)
             return s.observe()
           })
-          edges.push({ from: next.state.fingerprint, to: after.fingerprint, action })
-          if (!nodes.has(after.fingerprint)) {
-            add(after)
-            queue.push({ path: [...next.path, action], state: after })
-          }
+          const edge = { from: next.state.fingerprint, to: after.fingerprint, action }
+          edges.set(stable(edge), edge)
+          frontier.delete(key(next.flow, next.state, action))
+          enqueue(next.flow, after, [...next.path, action])
         } catch (error) {
           if (signal.aborted) throw error
           errors.push(errorMessage(error))
@@ -116,10 +152,21 @@ export async function crawl(options: {
       }
     }
     if (nodes.size >= maxStates) stopped = 'State limit reached'
-    else if (edges.length >= maxEdges) stopped = 'Edge limit reached'
+    else if (edges.size >= maxEdges) stopped = 'Edge limit reached'
+    else if (frontier.size)
+      stopped = errors.length ? 'Discovery errors left unexplored actions' : 'Depth limit reached'
+    else if (errors.length) stopped = 'Discovery errors prevented complete exploration'
   } catch (error) {
     stopped = errorMessage(error)
     errors.push(stopped)
   }
-  return { nodes: [...nodes.values()], edges, stopped, errors }
+  return {
+    nodes: [...nodes.values()],
+    edges: [...edges.values()],
+    stopped,
+    errors,
+    complete: frontier.size === 0 && opened === flows.length && errors.length === 0,
+    entryPoints: { requested: flows.length, opened },
+    frontier: [...frontier.values()],
+  }
 }
